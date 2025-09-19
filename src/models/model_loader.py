@@ -1,9 +1,10 @@
 from .company_model import company_model
+from .settings_model import settings_model
 import json
 import os
 class settings_manager:
     __filename:str=""
-    __company:company_model = None
+    __settings:settings_model = None
 
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, 'instance'):
@@ -14,8 +15,12 @@ class settings_manager:
         self.__filename = filename
         self.default()
 
+    def settings(self)->settings_model:
+        return self.__settings
+    
     def company_setting(self)->company_model:
-        return self.__company
+        return self.__settings.company
+        
     @property
     def filename(self) -> str:
         return self.__filename
@@ -29,6 +34,7 @@ class settings_manager:
         
     
     def load(self) -> bool:
+        fields=["name", "INN", "account", "cor_account", "BIK", "type_of_own"]
         if self.filename.strip()=="":
             raise Exception("No filename!")
         try:
@@ -36,16 +42,29 @@ class settings_manager:
                 data = json.load(file)
                 if "company" in data:
                     item=data["company"]
-                    if 'name' in item:
-                        self.__company.name=item['name']
-                        return True
+                    for i in fields:
+                        if i not in item:
+                            return False
+                    self.__settings.company.name=item['name']
+                    self.__settings.company.INN=item['INN']
+                    self.__settings.company.account=item['account']
+                    self.__settings.company.cor_account=item['cor_account']
+                    self.__settings.company.BIK=item['BIK']
+                    self.__settings.company.type_of_own=item['type_of_own']
+                    return True
                 return False
         except:
             return False
     
     def default(self):
-        self.__company=company_model()
-        self.__company.name="Company Name"
+        self.__settings = settings_model()
+        self.__settings.company = company_model()
+        self.__settings.company.name = "Company Name"
+        self.__settings.company.INN="000000000000"
+        self.__settings.company.account="00000000000"
+        self.__settings.company.cor_account="00000000000"
+        self.__settings.company.BIK="000000000"
+        self.__settings.company.type_of_own="AAAAA"
 
     
                     

@@ -1,5 +1,12 @@
 {
     "company":{
-        "name":"Romashka"
+        "name":"Romashka",
+        "INN":"23213122",
+        "account":"43243243424",
+        "cor_account":"5348212133",
+        "BIK":"432448099", 
+        "type_of_own":"OOO"
+
+
     }
 }
