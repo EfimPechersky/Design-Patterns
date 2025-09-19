@@ -1,5 +1,5 @@
 from models.company_model import company_model
-from models.model_loader import settings_manager
+from models.settings_manager import settings_manager
 import json
 
 class TestModels:

@@ -1,2 +1,2 @@
 from .company_model import company_model
-from .model_loader import settings_manager
+from .settings_manager import settings_manager
