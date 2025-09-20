@@ -1,10 +1,10 @@
 {
     "company":{
         "name":"Oduvanchik",
-        "INN":"999999999",
-        "account":"21312321",
-        "cor_account":"09939693",
-        "BIK":"437088499", 
+        "INN":999999999,
+        "account":21312321,
+        "cor_account":90939693,
+        "BIK":437088499, 
         "type_of_own":"ZAO"
 
     }

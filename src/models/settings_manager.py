@@ -12,7 +12,8 @@ class settings_manager:
         return cls.instance
     
     def __init__(self,filename:str):
-        self.__filename = filename
+        self.__filename = os.path.relpath(filename)
+        print(self.__filename)
         self.default()
 
     def settings(self)->settings_model:
@@ -34,7 +35,6 @@ class settings_manager:
         
     
     def load(self) -> bool:
-        fields=["name", "INN", "account", "cor_account", "BIK", "type_of_own"]
         if self.filename.strip()=="":
             raise Exception("No filename!")
         try:
@@ -42,16 +42,9 @@ class settings_manager:
                 data = json.load(file)
                 if "company" in data:
                     item=data["company"]
-                    for i in fields:
-                        if i not in item:
-                            return False
-                    self.__settings.company.name=item['name']
-                    self.__settings.company.INN=item['INN']
-                    self.__settings.company.account=item['account']
-                    self.__settings.company.cor_account=item['cor_account']
-                    self.__settings.company.BIK=item['BIK']
-                    self.__settings.company.type_of_own=item['type_of_own']
-                    return True
+                    #Проверку наличия параметров перенёс в company_model
+                    res = self.__settings.company.load_from_dict(item)
+                    return res
                 return False
         except:
             return False
@@ -60,10 +53,10 @@ class settings_manager:
         self.__settings = settings_model()
         self.__settings.company = company_model()
         self.__settings.company.name = "Company Name"
-        self.__settings.company.INN="000000000000"
-        self.__settings.company.account="00000000000"
-        self.__settings.company.cor_account="00000000000"
-        self.__settings.company.BIK="000000000"
+        self.__settings.company.INN=0
+        self.__settings.company.account=0
+        self.__settings.company.cor_account=0
+        self.__settings.company.BIK=0
         self.__settings.company.type_of_own="AAAAA"
 
     
