@@ -1,19 +1,19 @@
 from .company_model import company_model
 from .settings_model import settings_model
+from core.validator import validator, operation_exception, argument_exception
+from .abstract_model import abstract_model
 import json
 import os
 class settings_manager:
-    __filename:str=""
+    __full_file_name:str = ""
     __settings:settings_model = None
-
+    val = validator()
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, 'instance'):
             cls.instance = super(settings_manager,cls).__new__(cls)
         return cls.instance
     
-    def __init__(self,filename:str):
-        self.__filename = os.path.relpath(filename)
-        print(self.__filename)
+    def __init__(self):
         self.default()
 
     def settings(self)->settings_model:
@@ -23,29 +23,45 @@ class settings_manager:
         return self.__settings.company
         
     @property
-    def filename(self) -> str:
-        return self.__filename
+    def file_name(self) -> str:
+        return self.__full_file_name
 
-    @filename.setter
-    def filename(self, value:str):
-        if value.strip()=="":
-            return
-        if os.path.exists(value):
-            self.__filename = value.strip()
+    @file_name.setter
+    def file_name(self, value:str):
+        validator.validate(value, str)
+        full_file_name = os.path.abspath(value)        
+        if os.path.exists(full_file_name):
+            self.__full_file_name = full_file_name.strip()
+        else:
+            raise argument_exception(f'Не найден файл настроек {full_file_name}')
         
+    def convert(self,data:dict)->bool:
+        self.val.validate(data, dict)
+
+        fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
+        matching_keys = list(filter(lambda key: key in fields, data.keys()))
+
+        try:
+            for key in matching_keys:
+                setattr(self.__settings.company, key, data[key])
+        except:
+            return False        
+
+        return True
     
     def load(self) -> bool:
-        if self.filename.strip()=="":
-            raise Exception("No filename!")
+        if self.__full_file_name == "":
+            raise operation_exception("Не найден файл настроек!")
+
         try:
-            with open(self.filename,'r') as file:
-                data = json.load(file)
-                if "company" in data:
-                    item=data["company"]
-                    #Проверку наличия параметров перенёс в company_model
-                    res = self.__settings.company.load_from_dict(item)
-                    return res
-                return False
+            with open( self.__full_file_name, 'r') as file_instance:
+                settings = json.load(file_instance)
+
+                if "company" in settings.keys():
+                    data = settings["company"]
+                    return self.convert(data)
+
+            return False
         except:
             return False
     
