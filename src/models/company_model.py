@@ -1,29 +1,35 @@
-class company_model:
-    __name:str = ""
-    #Изменил тип на целочисленный
+from core.validator import validator
+from .abstract_model import abstract_model
+from core.validator import argument_exception, operation_exception
+class company_model(abstract_model):
     __INN:int = 0
     __account:int = 0
     __cor_account:int = 0
     __BIK:int = 0
     __type_of_own:str = ""
-
-
-    @property
-    def name(self) -> str:
-        return self.__name
-
-    @name.setter
-    def name(self, value:str):
-        if value.strip()!="":
-            self.__name = value.strip()
     
+    #Вместо settings передается company,
+    #Иначе возникает проблема цикличного импорта из settings_model в company_model и наоборот
+    def __init__(self, company = None):
+        if not company is None:
+            fields = list(filter(lambda x: not x.startswith("_") , dir(self)))
+            
+            other_fields = list(filter(lambda x: not x.startswith("_") , dir(company)))
+            try:
+                for key in other_fields:
+                    attr=getattr(company,key,None)
+                    if not attr is None:
+                        setattr(self, key, attr)
+            except:
+                raise operation_exception("Загруженные настройки организации содержат не все поля")
+
     @property
     def INN(self) -> int:
         return self.__INN
 
     @INN.setter
     def INN(self, value:int):
-        if value>0 and len(str(value))<=12:
+        if self.val.validate(value, int, 12):
             self.__INN = value
             
     @property
@@ -32,7 +38,7 @@ class company_model:
 
     @account.setter
     def account(self, value:int):
-        if value>0 and len(str(value))<=11:
+        if self.val.validate(value, int, 11):
             self.__account = value
     
     @property
@@ -41,7 +47,7 @@ class company_model:
 
     @cor_account.setter
     def cor_account(self, value:int):
-        if value>0 and len(str(value))<=11:
+        if self.val.validate(value, int, 11):
             self.__cor_account = value
     
     @property
@@ -50,7 +56,7 @@ class company_model:
 
     @BIK.setter
     def BIK(self, value:int):
-        if value>0 and len(str(value))<=9:
+        if self.val.validate(value, int, 9):
             self.__BIK = value
 
     @property
@@ -58,21 +64,10 @@ class company_model:
         return self.__type_of_own
     @type_of_own.setter
     def type_of_own(self, value:str):
-        if value.strip()!="" and len(value.strip())<=5:
+        if self.val.validate(value, str, 5):
             self.__type_of_own = value.strip()
     
-    def load_from_dict(self,data:dict)->bool:
-        fields=["name", "INN", "account", "cor_account", "BIK", "type_of_own"]
-        for i in fields:
-            if i not in data:
-                return False
-        self.name=data['name']
-        self.INN=data['INN']
-        self.account=data['account']
-        self.cor_account=data['cor_account']
-        self.BIK=data['BIK']
-        self.type_of_own=data['type_of_own']
-        return True
+    
 
 
             
