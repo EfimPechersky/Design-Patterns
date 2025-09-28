@@ -7,25 +7,29 @@ import os
 class settings_manager:
     __full_file_name:str = ""
     __settings:settings_model = None
-    val = validator()
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, 'instance'):
             cls.instance = super(settings_manager,cls).__new__(cls)
         return cls.instance
     
+    #Конструктор менеджера настроек
     def __init__(self):
         self.default()
 
+    #Возвращение загруженных настроек
     def settings(self)->settings_model:
         return self.__settings
     
+    #Возвращение загруженных настроек организации
     def company_setting(self)->company_model:
         return self.__settings.company
         
+    #Путь к файлу
     @property
     def file_name(self) -> str:
         return self.__full_file_name
 
+    #Валидация и присвоение пути к файлу
     @file_name.setter
     def file_name(self, value:str):
         validator.validate(value, str)
@@ -35,8 +39,9 @@ class settings_manager:
         else:
             raise argument_exception(f'Не найден файл настроек {full_file_name}')
         
+    #Запись настроек из словаря в company_model
     def convert(self,data:dict)->bool:
-        self.val.validate(data, dict)
+        validator.validate(data, dict)
 
         fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
         matching_keys = list(filter(lambda key: key in fields, data.keys()))
@@ -49,6 +54,7 @@ class settings_manager:
 
         return True
     
+    #Выгрузка настроек из файла в словарь
     def load(self) -> bool:
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")
@@ -65,6 +71,7 @@ class settings_manager:
         except:
             return False
     
+    #Дефолтные значения настроек
     def default(self):
         self.__settings = settings_model()
         self.__settings.company = company_model()

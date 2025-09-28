@@ -2,7 +2,6 @@ from core.validator import validator
 class abstract_model:
     __id = ""
     __name:str = ""
-    val:validator = validator()
     def __eq__(self, other):
         if isinstance(other, abstract_model):
             return self.id==other.id
@@ -14,17 +13,19 @@ class abstract_model:
     def id(self) -> str:
         return self.__id
 
+    #Валидация и присвоение ID
     @id.setter
     def id(self, value:str):
-        if value.strip()!="":
+        if validator.validate(value,str):
             self.__id = value.strip()
     
-    #name
+    #Наименование
     @property
     def name(self) -> str:
         return self.__name
 
+    #Валидация и присвоение наименования
     @name.setter
     def name(self, value:str):
-        if self.val.validate(value, str, 50):
+        if validator.validate(value, str, 50):
             self.__name = value.strip()

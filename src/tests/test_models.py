@@ -11,10 +11,14 @@ import json
 import uuid
 import pytest
 class TestModels:
+    #Тестирование создания пустой модели организации
     def test_check_create_company_model(self):
+        #Действие
         model = company_model()
+        #Проверка
         assert model.name == ""
 
+    #Тестирование заполнения полей модели организации
     @pytest.mark.parametrize("attr_name, attr_value, result", [
         ("name", "Romashka", does_not_raise()),
         ("name", "A"*51, pytest.raises(argument_exception)),
@@ -41,13 +45,19 @@ class TestModels:
         ("type_of_own", 0, pytest.raises(argument_exception)),
         ("type_of_own", None, pytest.raises(argument_exception))
         ])
-    def test_different_parameters_company_model(self,attr_name, attr_value, result ):
+    def test_input_fields_company_model(self,attr_name, attr_value, result ):
+        #Подготовка
+        model = company_model()
+        #Проверка на наличие ошибки
         with result:
-            model = company_model()
+            #Действие
             setattr(model, attr_name, attr_value)
+            #Проверка при отсутствии ошибок
             assert getattr(model,attr_name,None) == attr_value
 
-    def test_load_createmodel_companymodel(self):
+    #Тестирование загрузки модели организации из файла
+    def test_load_company_model(self):
+        #Подготовка
         filename = './settings.json'
         sm = settings_manager()
         sm.file_name=filename
@@ -56,7 +66,9 @@ class TestModels:
         #Проверка
         assert result==True
     
-    def test_copy_from_settings_companymodel(self):
+    #Тестирование копирования настроек из загруженной модели организации
+    def test_copy_company_model_from_settings_manager(self):
+        #Подготовка
         filename = './settings.json'
         sm = settings_manager()
         sm.file_name=filename
@@ -66,23 +78,27 @@ class TestModels:
         company = company_model(sm.settings().company)
         assert company.name == "Romashka"
 
-    def test_compare_createmodel_companymodel(self):
+    #Тестирование сравнение моделей организации загруженных из одного файла
+    def test_compare_loaded_company_model(self):
+        #Подгтовка
         filename = "./settings.json"
         sm1 = settings_manager()
         sm1.file_name=filename
         sm2 = settings_manager()
         sm2.file_name=filename
+
+        #Действие
         sm1.load()
         sm2.load()
-        #Действие
         model1 = sm1.company_setting()
         model2 = sm2.company_setting()
 
         #Проверка
         assert model1.name==model2.name
 
-    #Проверка относительных путей
+    #Тестирование загрузки настроек из файлов в разных директориях
     def test_load_different_settings(self):
+        #Подготовка
         filename1 = "../src/settings.json"
         filename2 = "./settings_folder/other_settings.json"
         #Действие
@@ -100,17 +116,20 @@ class TestModels:
         assert model1.name=="Romashka"
         assert model2.name=="Oduvanchik"
 
-    def test_inputs_storage_model_create(self):
+    #Тестирование заполнения ID и сравнения моделей склада
+    def test_set_id_storage_model(self):
         #Подготовка
         id = "2131231312"
+        #Действие
         storage1 = storage_model()
         storage1.id=id
         storage2 = storage_model()
         storage2.id=id
 
-        #Действие
+        #Проверка
         assert storage1==storage2
     
+    #Тестирование заполнения полей модели единицы измерения
     @pytest.mark.parametrize("name, coeff, result", [
         ("грамм", 1.0, does_not_raise()),
         ("A"*51, 1.0, pytest.raises(argument_exception)),
@@ -119,29 +138,42 @@ class TestModels:
         (None, 1.0, pytest.raises(argument_exception)),
         ("грамм", None, pytest.raises(argument_exception)),
         ])
-    def test_create_range_model(self, name, coeff, result):
+    def test_input_fields_range_model(self, name, coeff, result):
+        #Проверка на возникновение ошибок
         with result:
+            #Действие
             rng = range_model(name, coeff)
+            #Проверка
             assert rng.name == name
             assert rng.coeff == coeff
     
+    #Тестирование присвоение базовой единицы измерения
     def test_use_base_range(self):
+        #Подготовка
         base_range=range_model("грамм",1.0)
+        #Действие
         other_range = range_model("Килограмм", 1000.0, base_range)
+        #Проверка
         assert other_range.base_range.name == "грамм"
     
+    #Тестирование заполнения полей в модели группы номенклатуры
     @pytest.mark.parametrize("name, result", [
         ("Продукты", does_not_raise()),
         ("A"*51, pytest.raises(argument_exception)),
         (1, pytest.raises(argument_exception)),
         (None, pytest.raises(argument_exception))
         ])
-    def test_create_nomenclature_group_model(self, name, result):
+    def test_input_fields_nomenclature_group_model(self, name, result):
+        #Подготовка
         gm = nomenclature_group_model()
+        #Проверка на наличие ошибок
         with result:
+            #Действие
             gm.name=name
+            #Проверка
             assert gm.name==name
     
+    #Тестирование заполнения полей в модели номенклатуры
     @pytest.mark.parametrize("attr_name, attr_value, result", [
         ("name","Белый хлеб",does_not_raise()),
         ("name","A"*51,pytest.raises(argument_exception)),
@@ -158,12 +190,17 @@ class TestModels:
         ("group",1, pytest.raises(argument_exception)),
         ("group",None, pytest.raises(argument_exception))
     ])
-    def test_create_nomenclature_model(self, attr_name, attr_value, result):
+    def test_input_fields_nomenclature_model(self, attr_name, attr_value, result):
+        #Подготовка
+        nm = nomenclature_model()
+        #Проверка на наличие ошибок
         with result:
-            nm = nomenclature_model()
+            #Действие
             setattr(nm, attr_name, attr_value)
+            #Проверка
             assert getattr(nm,attr_name,None) == attr_value
     
+    #Тестирование заполнения полей в модели настроек
     @pytest.mark.parametrize("attr_name, attr_value, result", [
         ("name","Настройки", does_not_raise()),
         ("name","A"*51, pytest.raises(argument_exception)),
@@ -173,11 +210,16 @@ class TestModels:
         ("company",1, pytest.raises(argument_exception)),
         ("company",None, pytest.raises(argument_exception))
         ])
-    def test_create_settings_model(self,attr_name, attr_value, result):
+    def test_input_fields_settings_model(self,attr_name, attr_value, result):
+        #Подготовка
         sm = settings_model()
+        #Проверка на наличие ошибок
         with result:
+            #Действие
             setattr(sm, attr_name, attr_value)
+            #Проверка
             assert getattr(sm,attr_name,None) == attr_value
+
 
         
 
