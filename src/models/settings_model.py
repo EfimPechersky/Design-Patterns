@@ -1,6 +1,7 @@
 from .company_model import company_model
 from .abstract_model import abstract_model
-from core.validator import validator
+from Core.validator import validator
+#Класс, описывающий настройки системы 
 class settings_model(abstract_model):
     __company:company_model = None
 

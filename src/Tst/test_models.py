@@ -1,11 +1,11 @@
-from models.company_model import company_model
-from models.settings_manager import settings_manager
-from models.storage_model import storage_model
-from models.range_model import range_model
-from models.group_model import nomenclature_group_model
-from models.nomenclature_model import nomenclature_model
-from models.settings_model import settings_model
-from core.validator import validator,argument_exception,operation_exception
+from Models.company_model import company_model
+from Models.settings_manager import settings_manager
+from Models.storage_model import storage_model
+from Models.range_model import range_model
+from Models.group_model import nomenclature_group_model
+from Models.nomenclature_model import nomenclature_model
+from Models.settings_model import settings_model
+from Core.validator import validator,argument_exception,operation_exception
 from contextlib import nullcontext as does_not_raise
 import json
 import uuid
@@ -100,7 +100,7 @@ class TestModels:
     def test_load_different_settings(self):
         #Подготовка
         filename1 = "../src/settings.json"
-        filename2 = "./settings_folder/other_settings.json"
+        filename2 = "./SettingsFolder/other_settings.json"
         #Действие
         sm1 = settings_manager()
         sm1.file_name=filename1

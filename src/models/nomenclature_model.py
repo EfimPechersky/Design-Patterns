@@ -1,7 +1,8 @@
 from .abstract_model import abstract_model
 from .range_model import range_model
 from .group_model import nomenclature_group_model
-from core.validator import validator
+from Core.validator import validator
+#Класс, описывающий номенклатуру на складе
 class nomenclature_model(abstract_model):
     __full_name:str = ""
     __range_count:range_model = None
@@ -18,7 +19,7 @@ class nomenclature_model(abstract_model):
         if validator.validate(value, str, 255):
             self.__full_name = value.strip()
     
-    #Единица измерения
+    #Единица измерения номенклатуры
     @property
     def range_count(self) -> str:
         return self.__range_count

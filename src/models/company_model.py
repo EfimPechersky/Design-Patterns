@@ -1,6 +1,7 @@
-from core.validator import validator
+from Core.validator import validator
 from .abstract_model import abstract_model
-from core.validator import argument_exception, operation_exception
+from Core.validator import argument_exception, operation_exception
+#Класс, описывающий параметры организации
 class company_model(abstract_model):
     __INN:int = 0
     __account:int = 0

@@ -1,9 +1,10 @@
 from .company_model import company_model
 from .settings_model import settings_model
-from core.validator import validator, operation_exception, argument_exception
+from Core.validator import validator, operation_exception, argument_exception
 from .abstract_model import abstract_model
 import json
 import os
+#Класс для загрузки настроек
 class settings_manager:
     __full_file_name:str = ""
     __settings:settings_model = None
@@ -24,7 +25,7 @@ class settings_manager:
     def company_setting(self)->company_model:
         return self.__settings.company
         
-    #Путь к файлу
+    #Путь к файлу, нужен для загрузки настроек
     @property
     def file_name(self) -> str:
         return self.__full_file_name

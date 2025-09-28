@@ -1,5 +1,6 @@
 from .abstract_model import abstract_model
-from core.validator import validator
+from Core.validator import validator
+#Класс, описывающий модель склада
 class storage_model(abstract_model):
     __name: str = ""
 

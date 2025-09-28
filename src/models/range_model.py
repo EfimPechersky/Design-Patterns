@@ -1,10 +1,11 @@
 from .abstract_model import abstract_model
-from core.validator import validator
+from Core.validator import validator
+#Класс, описывающий единицу измерения
 class range_model(abstract_model):
     __base_range = None
     __coeff:float = 0.0
 
-    #Базовая единица измерения, необязательная для создания объекта
+    #Базовая единица измерения, необязательна для создания объекта, нужна для сравнения с другими единицами
     @property
     def base_range(self):
         return self.__base_range
@@ -15,7 +16,7 @@ class range_model(abstract_model):
         if validator.validate(value, range_model):
             self.__base_range=value
     
-    #Коэффициент пересчёта
+    #Коэффициент пересчёта, нужен для перевода в базовую единицу измерения
     @property
     def coeff(self):
         return self.__coeff

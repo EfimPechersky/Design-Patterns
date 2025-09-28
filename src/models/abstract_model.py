@@ -1,4 +1,5 @@
-from core.validator import validator
+from Core.validator import validator
+#Абстрактный класс, от которого наследуются все модели
 class abstract_model:
     __id = ""
     __name:str = ""
