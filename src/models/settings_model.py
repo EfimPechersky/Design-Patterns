@@ -1,12 +1,17 @@
 from .company_model import company_model
-
-class settings_model:
+from .abstract_model import abstract_model
+from Core.validator import validator
+#Класс, описывающий настройки системы 
+class settings_model(abstract_model):
     __company:company_model = None
 
+    #Настройки модели организации
     @property
     def company(self) -> str:
         return self.__company
+    
+    #Валидация и присвоение настроек организации
     @company.setter
     def company(self, value):
-        if value!=None:
+        if validator.validate(value, company_model):
             self.__company = value
