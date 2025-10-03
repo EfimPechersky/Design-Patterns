@@ -1,16 +1,29 @@
 from Core.validator import validator
 from .abstract_model import abstract_model
 from Core.validator import argument_exception, operation_exception
-#Класс, описывающий параметры организации
+"""
+Класс, описывающий параметры организации
+"""
 class company_model(abstract_model):
-    __INN:int = 0
+    __inn:int = 0
     __account:int = 0
     __cor_account:int = 0
-    __BIK:int = 0
+    __bik:int = 0
     __type_of_own:str = ""
     
-    #Копирование настроек компании из seetings_model
+    
     def __init__(self, company = None):
+        """
+        Копирование настроек компании из seetings_model
+        Args:
+            company (any): загруженные настройки компании
+        Raises:
+            argument_exception: Некорректный тип
+            argument_exception: Неулевая длина
+            argument_exception: Некорректная длина аргумента
+        Returns:
+            None или Exception
+        """
         if not company is None and validator.validate(company, company_model):
             fields = list(filter(lambda x: not x.startswith("_") , dir(self)))
             
@@ -25,56 +38,60 @@ class company_model(abstract_model):
             except:
                 raise operation_exception("Загруженные настройки организации содержат не все поля")
 
-    #ИНН
+    """
+    ИНН
+    """
     @property
-    def INN(self) -> int:
-        return self.__INN
+    def inn(self) -> int:
+        return self.__inn
 
-    #Валидация и присвоение ИНН
-    @INN.setter
-    def INN(self, value:int):
+    """
+    Валидация и присвоение ИНН
+    """
+    @inn.setter
+    def inn(self, value:int):
         if validator.validate(value, int, 12):
-            self.__INN = value
+            self.__inn = value
 
-    #Счёт        
+    """Счёт"""        
     @property
     def account(self) -> int:
         return self.__account
 
-    #Валидация и присвоение счёта
+    """Валидация и присвоение счёта"""
     @account.setter
     def account(self, value:int):
         if validator.validate(value, int, 11):
             self.__account = value
     
-    #Корреспондентский счёт
+    """Корреспондентский счёт"""
     @property
     def cor_account(self) -> int:
         return self.__cor_account
 
-    #Валидация и присвоение корреспондентского счёта
+    """Валидация и присвоение корреспондентского счёта"""
     @cor_account.setter
     def cor_account(self, value:int):
         if validator.validate(value, int, 11):
             self.__cor_account = value
     
-    #БИК
+    """БИК"""
     @property
-    def BIK(self) -> int:
-        return self.__BIK
+    def bik(self) -> int:
+        return self.__bik
 
-    #Валидация и присвоение БИК
-    @BIK.setter
-    def BIK(self, value:int):
+    """Валидация и присвоение БИК"""
+    @bik.setter
+    def bik(self, value:int):
         if validator.validate(value, int, 9):
-            self.__BIK = value
+            self.__bik = value
 
-    #Форма собственности
+    """Форма собственности"""
     @property
     def type_of_own(self) -> str:
         return self.__type_of_own
     
-    #Валидация и присвоение формы собственности
+    """Валидация и присвоение формы собственности"""
     @type_of_own.setter
     def type_of_own(self, value:str):
         if validator.validate(value, str, 5):
