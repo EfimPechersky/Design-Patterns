@@ -20,7 +20,7 @@ class repository:
     def nomenclature_key(self):
         return "nomenclature_model"
     
-    """Ключ жоступа к рецептам"""
+    """Ключ доступа к рецептам"""
     @property
     def receipt_key(self):
         return "receipt_model"
