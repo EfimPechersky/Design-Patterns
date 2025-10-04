@@ -5,7 +5,6 @@ from functools import lru_cache
 class range_model(abstract_model):
     __base_range = None
     __coeff:float = 0.0
-    __created_ranges:dict={}
 
     """Базовая единица измерения, необязательна для создания объекта, нужна для сравнения с другими единицами"""
     @property
