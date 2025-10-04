@@ -5,6 +5,8 @@ from Models.range_model import range_model
 from Models.group_model import nomenclature_group_model
 from Models.nomenclature_model import nomenclature_model
 from Models.settings_model import settings_model
+from Models.abstract_model import abstract_model
+from Models.receipt_model import receipt_model
 from Core.validator import validator,argument_exception,operation_exception
 from contextlib import nullcontext as does_not_raise
 import json
@@ -24,10 +26,10 @@ class TestModels:
         ("name", "A"*51, pytest.raises(argument_exception)),
         ("name", 0, pytest.raises(argument_exception)),
         ("name", None, pytest.raises(argument_exception)),
-        ("INN", 10**11, does_not_raise()),
-        ("INN", 10**12, pytest.raises(argument_exception)),
-        ("INN", "A", pytest.raises(argument_exception)),
-        ("INN", None, pytest.raises(argument_exception)),
+        ("inn", 10**11, does_not_raise()),
+        ("inn", 10**12, pytest.raises(argument_exception)),
+        ("inn", "A", pytest.raises(argument_exception)),
+        ("inn", None, pytest.raises(argument_exception)),
         ("account",10**10, does_not_raise()),
         ("account", 10**11, pytest.raises(argument_exception)),
         ("account", "A", pytest.raises(argument_exception)),
@@ -36,10 +38,10 @@ class TestModels:
         ("cor_account", 10**11, pytest.raises(argument_exception)),
         ("cor_account", "A", pytest.raises(argument_exception)),
         ("cor_account", None, pytest.raises(argument_exception)),
-        ("BIK",10**8, does_not_raise()),
-        ("BIK", 10**9, pytest.raises(argument_exception)),
-        ("BIK", "A", pytest.raises(argument_exception)),
-        ("BIK", None, pytest.raises(argument_exception)),
+        ("bik",10**8, does_not_raise()),
+        ("bik", 10**9, pytest.raises(argument_exception)),
+        ("bik", "A", pytest.raises(argument_exception)),
+        ("bik", None, pytest.raises(argument_exception)),
         ("type_of_own","O"*3, does_not_raise()),
         ("type_of_own", "O"*6, pytest.raises(argument_exception)),
         ("type_of_own", 0, pytest.raises(argument_exception)),
@@ -219,6 +221,81 @@ class TestModels:
             setattr(sm, attr_name, attr_value)
             #Проверка
             assert getattr(sm,attr_name,None) == attr_value
+
+    #Тестирование создания абстрактного класса
+    def test_abstract_class_creation(self):
+        with pytest.raises(TypeError):
+            am=abstract_model()
+            assert am.name==""
+
+    def test_receipt_model_creation(self):
+        rm = receipt_model()
+        assert rm.name == ""
+    #Тестирование присвоения различных параметров модели рецепта
+    @pytest.mark.parametrize("attr_name, attr_value, result", [
+        ("name","Пирог", does_not_raise()),
+        ("name","A"*51, pytest.raises(argument_exception)),
+        ("name",1, pytest.raises(argument_exception)),
+        ("name",None, pytest.raises(argument_exception)),
+        ("ingridients",[(nomenclature_model.create_eggs(),1.0)], does_not_raise()),
+        ("ingridients",[("nomenclature_model.create_eggs()",1.0)], pytest.raises(argument_exception)),
+        ("ingridients",[(nomenclature_model.create_eggs(),"1")], pytest.raises(argument_exception)),
+        ("ingridients",{"nomenclature_model.create_eggs()":1.0}, pytest.raises(argument_exception)),
+        ("ingridients",None, pytest.raises(argument_exception)),
+        ("steps",["Шаг 1","Шаг 2"], does_not_raise()),
+        ("steps",[1,"Шаг 2"], pytest.raises(argument_exception)),
+        ("steps",{"Шаг 1":"Шаг 2"}, pytest.raises(argument_exception)),
+        ("steps",None, pytest.raises(argument_exception))])
+    def test_receipt_model_different_parameters(self,attr_name, attr_value, result):
+        #Подготовка
+        rm = receipt_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            setattr(rm, attr_name, attr_value)
+            #Проверка
+            assert getattr(rm,attr_name,None) == attr_value
+    
+    #Тестирование добавления нового ингридиента
+    @pytest.mark.parametrize("nomenclature, number, result", [
+        (nomenclature_model.create_eggs(), 1.0, does_not_raise()),
+        ("nomenclature_model.create_eggs()", 1.0, pytest.raises(argument_exception)),
+        (nomenclature_model.create_eggs(), "1", pytest.raises(argument_exception)),
+        (None, 1.0, pytest.raises(argument_exception)),
+        (nomenclature_model.create_eggs(), None, pytest.raises(argument_exception))
+    ])
+    def test_add_new_ingridient_to_receipt(self,nomenclature, number, result):
+        #Подготовка
+        rm = receipt_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            rm.add_new_proportion(nomenclature,number)
+            #Проверка
+            assert rm.ingridients[0][0]==nomenclature
+            assert rm.ingridients[0][1]==number
+    
+    #Тестирование добавление нового шага в рецепт
+    @pytest.mark.parametrize("step, number, result", [
+        ("Шаг 1", 0, does_not_raise()),
+        ("Шаг 1", -1, does_not_raise()),
+        ("Шаг 1", "1", pytest.raises(argument_exception)),
+        ("Шаг 1", 10, pytest.raises(argument_exception)),
+        ("Шаг 1", -10, pytest.raises(argument_exception)),
+        (1, 0, pytest.raises(argument_exception)),
+        (None, 1, pytest.raises(argument_exception)),
+        ("Шаг 1", None, pytest.raises(argument_exception))
+    ])
+    def test_add_new_step_to_receipt(self,step, number, result):
+        #Подготовка
+        rm = receipt_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            rm.add_step(step,number)
+            #Проверка
+            assert rm.steps[number]==step
+           
 
 
         

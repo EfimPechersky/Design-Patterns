@@ -4,7 +4,7 @@ from Core.validator import validator, operation_exception, argument_exception
 from .abstract_model import abstract_model
 import json
 import os
-#Класс для загрузки настроек
+"""Класс для загрузки настроек"""
 class settings_manager:
     __full_file_name:str = ""
     __settings:settings_model = None
@@ -13,24 +13,24 @@ class settings_manager:
             cls.instance = super(settings_manager,cls).__new__(cls)
         return cls.instance
     
-    #Конструктор менеджера настроек
+    """Конструктор менеджера настроек"""
     def __init__(self):
         self.default()
 
-    #Возвращение загруженных настроек
+    """Возвращение загруженных настроек"""
     def settings(self)->settings_model:
         return self.__settings
     
-    #Возвращение загруженных настроек организации
+    """Возвращение загруженных настроек организации"""
     def company_setting(self)->company_model:
         return self.__settings.company
         
-    #Путь к файлу, нужен для загрузки настроек
+    """Путь к файлу, нужен для загрузки настроек"""
     @property
     def file_name(self) -> str:
         return self.__full_file_name
 
-    #Валидация и присвоение пути к файлу
+    """Валидация и присвоение пути к файлу"""
     @file_name.setter
     def file_name(self, value:str):
         validator.validate(value, str)
@@ -40,7 +40,7 @@ class settings_manager:
         else:
             raise argument_exception(f'Не найден файл настроек {full_file_name}')
         
-    #Запись настроек из словаря в company_model
+    """Запись настроек из словаря в company_model"""
     def convert(self,data:dict)->bool:
         validator.validate(data, dict)
 
@@ -55,7 +55,7 @@ class settings_manager:
 
         return True
     
-    #Выгрузка настроек из файла в словарь
+    """Выгрузка настроек из файла в словарь"""
     def load(self) -> bool:
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")
@@ -72,7 +72,7 @@ class settings_manager:
         except:
             return False
     
-    #Дефолтные значения настроек
+    """Дефолтные значения настроек"""
     def default(self):
         self.__settings = settings_model()
         self.__settings.company = company_model()
