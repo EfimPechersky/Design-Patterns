@@ -1,11 +1,45 @@
 from .abstract_model import abstract_model
 from Core.validator import validator
-from functools import lru_cache
 """Класс, описывающий единицу измерения"""
 class range_model(abstract_model):
     __base_range = None
     __coeff:float = 0.0
+    __range_storage:dict = {}
 
+    def get_from_storage(key:str):
+        """
+        Получение значения из хранилища
+        Args:
+            key (str): Ключ значения
+        Raises:
+            argument_exception: Некорректный тип
+            argument_exception: Неулевая длина
+            argument_exception: Некорректная длина аргумента
+        Returns:
+            range_model, None или Exception
+        """
+        validator.validate(key,str)
+        if key in range_model.__range_storage:
+            return range_model.__range_storage[key]
+        return None
+    
+    def put_in_storage(key:str, value):
+        """
+        Запись значения в хранилище
+        Args:
+            key (str): Ключ значения
+            value (range_model): Значение
+        Raises:
+            argument_exception: Некорректный тип
+            argument_exception: Неулевая длина
+            argument_exception: Некорректная длина аргумента
+        Returns:
+            None или Exception
+        """
+        validator.validate(key,str)
+        validator.validate(value,range_model)
+        range_model.__range_storage[key]=value
+        
     """Базовая единица измерения, необязательна для создания объекта, нужна для сравнения с другими единицами"""
     @property
     def base_range(self):
@@ -36,37 +70,31 @@ class range_model(abstract_model):
             self.base_range=base_range_val
     
     """Создание штук"""
-    @lru_cache(maxsize=None)
     @staticmethod
     def create_num():
         return range_model.create("штука",1.0)
 
     """Создание грамма"""
-    @lru_cache(maxsize=None)
     @staticmethod
     def create_gramm():
         return range_model.create("грамм",1.0)
     
     """Создание килограмма"""
-    @lru_cache(maxsize=None)
     @staticmethod
     def create_kilogramm():
         inner_gram = range_model.create_gramm()
         return range_model.create("килограмм",1000.0,inner_gram)
     
     """Создание литра"""
-    @lru_cache(maxsize=None)
     @staticmethod
     def create_liter():
         return range_model.create("литр",1.0)
     
     """Создание миллилитра"""
-    @lru_cache(maxsize=None)
     @staticmethod
     def create_milliliter():
         inner_liter = range_model.create_liter()
         return range_model.create("миллилитр",0.001,inner_liter)
-
     
     @staticmethod
     def create(name:str,coeff:float, base=None):
@@ -83,8 +111,11 @@ class range_model(abstract_model):
         Returns:
             range_model или Exception
         """
-        if not base is None:
-            validator.validate(base,range_model)
-        item = range_model(name,coeff,base)
+        item = range_model.get_from_storage(name)
+        if item is None:
+            if not base is None:
+                validator.validate(base,range_model)
+            item = range_model(name,coeff,base)
+            range_model.put_in_storage(name, item)
         return item
 
