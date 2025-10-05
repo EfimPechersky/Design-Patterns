@@ -8,41 +8,6 @@ class receipt_model(abstract_model):
     __steps:list=[]
     __receipt_storage={}
 
-    
-    def get_from_storage(key:str):
-        """
-        Получение значения из хранилища
-        Args:
-            key (str): Ключ значения
-        Raises:
-            argument_exception: Некорректный тип
-            argument_exception: Неулевая длина
-            argument_exception: Некорректная длина аргумента
-        Returns:
-            receipt_model, None или Exception
-        """
-        validator.validate(key,str)
-        if key in receipt_model.__receipt_storage:
-            return receipt_model.__receipt_storage[key]
-        return None
-    
-    def put_in_storage(key:str, value):
-        """
-        Запись значения в хранилище
-        Args:
-            key (str): Ключ значения
-            value (receipt_model): Значение
-        Raises:
-            argument_exception: Некорректный тип
-            argument_exception: Неулевая длина
-            argument_exception: Некорректная длина аргумента
-        Returns:
-            None или Exception
-        """
-        validator.validate(key,str)
-        validator.validate(value,receipt_model)
-        receipt_model.__receipt_storage[key]=value
-
     def __init__(self):
         super().__init__()
 
@@ -107,13 +72,10 @@ class receipt_model(abstract_model):
         Returns:
             receipt_model или Exception
         """
-        rm = receipt_model.get_from_storage(name)
-        if rm is None:
-            rm = receipt_model()
-            rm.name = name
-            rm.ingridients = ingridients
-            rm.steps = steps
-            receipt_model.put_in_storage(name, rm)
+        rm = receipt_model()
+        rm.name = name
+        rm.ingridients = ingridients
+        rm.steps = steps
         return rm
     
     """Создание рецепта вафель"""

@@ -8,40 +8,6 @@ class nomenclature_group_model(abstract_model):
     def __init__(self):
         super().__init__()
 
-    def get_from_storage(key:str):
-        """
-        Получение значения из хранилища
-        Args:
-            key (str): Ключ значения
-        Raises:
-            argument_exception: Некорректный тип
-            argument_exception: Неулевая длина
-            argument_exception: Некорректная длина аргумента
-        Returns:
-            nomenclature_group_model, None или Exception
-        """
-        validator.validate(key,str)
-        if key in nomenclature_group_model.__group_storage:
-            return nomenclature_group_model.__group_storage[key]
-        return None
-    
-    def put_in_storage(key:str, value):
-        """
-        Запись значения в хранилище
-        Args:
-            key (str): Ключ значения
-            value (nomenclature_group_model): Значение
-        Raises:
-            argument_exception: Некорректный тип
-            argument_exception: Неулевая длина
-            argument_exception: Некорректная длина аргумента
-        Returns:
-            None или Exception
-        """
-        validator.validate(key,str)
-        validator.validate(value,nomenclature_group_model)
-        nomenclature_group_model.__group_storage[key]=value
-
     """"Создание группы молочных продуктов"""
     @staticmethod
     def create_milk_products():
@@ -84,9 +50,6 @@ class nomenclature_group_model(abstract_model):
         Returns:
             nomenclature_group_model или Exception
         """
-        nmg = nomenclature_group_model.get_from_storage(name)
-        if nmg is None:
-            nmg = nomenclature_group_model()
-            nmg.name=name
-            nomenclature_group_model.put_in_storage(name, nmg)
+        nmg = nomenclature_group_model()
+        nmg.name=name
         return nmg
