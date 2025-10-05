@@ -27,36 +27,38 @@ class start_service:
     def repository(self):
         return self.__repository
     
+
+    
     """Запись дефолтных значений единицы измерения"""
     def default_create_range(self):
-        self.__repository.data[repository.range_key].append(range_model.create_gramm())
-        self.__repository.data[repository.range_key].append(range_model.create_kilogramm(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.range_key].append(range_model.create_num())
-        self.__repository.data[repository.range_key].append(range_model.create_liter())
-        self.__repository.data[repository.range_key].append(range_model.create_milliliter(self.__repository.data[repository.range_key][3]))
+        self.__repository.data[repository.range_key].append(range_model.create_gramm(self.__repository))
+        self.__repository.data[repository.range_key].append(range_model.create_kilogramm(self.__repository))
+        self.__repository.data[repository.range_key].append(range_model.create_num(self.__repository))
+        self.__repository.data[repository.range_key].append(range_model.create_liter(self.__repository))
+        self.__repository.data[repository.range_key].append(range_model.create_milliliter(self.__repository))
 
     """Запись дефолтных значений групп"""
     def default_create_group(self):
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_animal_products())
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_sugar_products())
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_milk_products())
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_grain_products())
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_seasoning_products())
-        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_addition_products())
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_animal_products(self.__repository))
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_sugar_products(self.__repository))
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_milk_products(self.__repository))
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_grain_products(self.__repository))
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_seasoning_products(self.__repository))
+        self.__repository.data[repository.group_key].append(nomenclature_group_model.create_addition_products(self.__repository))
     """Запись дефолтных значений номенклатуры"""
     def default_create_nomenclature(self):
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_butter(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_eggs(self.__repository.data[repository.range_key][2]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_flour(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_sugar(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_vanilla(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_cacao(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_soda(self.__repository.data[repository.range_key][0]))
-        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_sour_cream(self.__repository.data[repository.range_key][4]))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_butter(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_eggs(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_flour(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_sugar(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_vanilla(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_cacao(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_soda(self.__repository))
+        self.__repository.data[repository.nomenclature_key].append(nomenclature_model.create_sour_cream(self.__repository))
     """Запись дефолтных значений рецептов"""
     def default_create_receipt(self):
-        self.__repository.data[repository.receipt_key].append(receipt_model.create_waffles_receipt())
-        self.__repository.data[repository.receipt_key].append(receipt_model.create_pie_receipt())
+        self.__repository.data[repository.receipt_key].append(receipt_model.create_waffles_receipt(self.__repository))
+        self.__repository.data[repository.receipt_key].append(receipt_model.create_pie_receipt(self.__repository))
     """Запуск сервиса"""
     def start(self):
         self.default_create_range()

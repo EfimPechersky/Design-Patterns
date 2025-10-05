@@ -37,37 +37,33 @@ class range_model(abstract_model):
     
     """Создание штук"""
     @staticmethod
-    def create_num():
-        return range_model.create("штука",1.0)
+    def create_num(repo=None):
+        return range_model.create("штука",1.0, repo=repo)
 
     """Создание грамма"""
     @staticmethod
-    def create_gramm():
-        return range_model.create("грамм",1.0)
+    def create_gramm(repo=None):
+        return range_model.create("грамм",1.0,repo=repo)
     
     """Создание килограмма"""
     @staticmethod
-    def create_kilogramm(gram = None):
-        inner_gram=gram
-        if inner_gram is None:
-            inner_gram = range_model.create_gramm()
-        return range_model.create("килограмм",1000.0,inner_gram)
+    def create_kilogramm(repo=None):
+        inner_gram = range_model.create_gramm(repo)
+        return range_model.create("килограмм",1000.0,base=inner_gram,repo=repo)
     
     """Создание литра"""
     @staticmethod
-    def create_liter():
-        return range_model.create("литр",1.0)
+    def create_liter(repo=None):
+        return range_model.create("литр",1.0,repo=repo)
     
     """Создание миллилитра"""
     @staticmethod
-    def create_milliliter(liter = None):
-        inner_liter=liter
-        if inner_liter is None:
-            inner_liter = range_model.create_liter()
-        return range_model.create("миллилитр",0.001,inner_liter)
+    def create_milliliter(repo=None):
+        inner_liter = range_model.create_liter(repo)
+        return range_model.create("миллилитр",0.001,base=inner_liter,repo=repo)
     
     @staticmethod
-    def create(name:str,coeff:float, base=None):
+    def create(name:str,coeff:float, base=None, repo=None):
         """
         Создание единицы измерения
         Args:
@@ -81,6 +77,11 @@ class range_model(abstract_model):
         Returns:
             range_model или Exception
         """
+        if repo!=None:
+            validator.validate(repo, repository)
+            for i in repo.data[repository.range_key]:
+                if i.name==name:
+                    return i
         if not base is None:
             validator.validate(base,range_model)
         item = range_model(name,coeff,base)

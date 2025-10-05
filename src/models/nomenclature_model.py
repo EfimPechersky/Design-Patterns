@@ -2,6 +2,7 @@ from .abstract_model import abstract_model
 from .range_model import range_model
 from .group_model import nomenclature_group_model
 from Core.validator import validator
+from Core.repository import repository
 """Класс, описывающий номенклатуру на складе"""
 class nomenclature_model(abstract_model):
     __full_name:str = ""
@@ -46,86 +47,70 @@ class nomenclature_model(abstract_model):
     
     """Создание номенклатуры пшеничной муки"""
     @staticmethod
-    def create_flour(inner_range = None):
+    def create_flour(repo=None):
         group = nomenclature_group_model.create_grain_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Пшеничная мука"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
         
     """Создание номенклатуры сахара"""
     @staticmethod
-    def create_sugar(inner_range = None):
+    def create_sugar(repo=None):
         group = nomenclature_group_model.create_sugar_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Сахар"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры сливочного масла"""
     @staticmethod
-    def create_butter(inner_range = None):
+    def create_butter(repo=None):
         group = nomenclature_group_model.create_milk_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Сливочное масло"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры ванилина"""
     @staticmethod
-    def create_vanilla(inner_range = None):
+    def create_vanilla(repo=None):
         group = nomenclature_group_model.create_seasoning_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Ванилин"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры яиц"""
     @staticmethod
-    def create_eggs(inner_range = None):
+    def create_eggs(repo=None):
         group = nomenclature_group_model.create_animal_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_num()
+        range = range_model.create_num(repo)
         full_name="Яйца"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры сметаны"""
     @staticmethod
-    def create_sour_cream(inner_range = None):
+    def create_sour_cream(repo=None):
         group = nomenclature_group_model.create_milk_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_milliliter()
+        range = range_model.create_milliliter(repo)
         full_name="Сметана"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры какао"""
     @staticmethod
-    def create_cacao(inner_range = None):
+    def create_cacao(repo=None):
         group = nomenclature_group_model.create_grain_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Какао"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры соды"""
     @staticmethod
-    def create_soda(inner_range = None):
+    def create_soda(repo=None):
         group = nomenclature_group_model.create_addition_products()
-        range=inner_range
-        if range is None:
-            range = range_model.create_gramm()
+        range = range_model.create_gramm(repo)
         full_name="Сода"
-        return nomenclature_model.create(full_name,group,range)
+        return nomenclature_model.create(full_name,group,range,repo=repo)
 
     @staticmethod
-    def create(full_name, group, range):
+    def create(full_name, group, range, repo=None):
         """"
         Создание номенклатуры
         Args:
@@ -139,6 +124,11 @@ class nomenclature_model(abstract_model):
         Returns:
             nomenclature_model или Exception
         """
+        if repo!=None:
+            validator.validate(repo, repository)
+            for i in repo.data[repository.nomenclature_key]:
+                if i.full_name==full_name:
+                    return i
         nm = nomenclature_model()
         nm.full_name=full_name
         nm.group=group

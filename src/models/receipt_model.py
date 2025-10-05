@@ -1,6 +1,7 @@
 from .abstract_model import abstract_model
 from .nomenclature_model import nomenclature_model
 from Core.validator import validator, operation_exception, argument_exception
+from Core.repository import repository
 import os
 """Класс, описывающий рецепты"""
 class receipt_model(abstract_model):
@@ -58,7 +59,7 @@ class receipt_model(abstract_model):
     
     
     @staticmethod
-    def create(name, ingridients, steps):
+    def create(name, ingridients, steps, repo=None):
         """
         Создание нового рецепта
         Args:
@@ -72,6 +73,11 @@ class receipt_model(abstract_model):
         Returns:
             receipt_model или Exception
         """
+        if repo!=None:
+            validator.validate(repo, repository)
+            for i in repo.data[repository.receipt_key]:
+                if i.name==name:
+                    return i
         rm = receipt_model()
         rm.name = name
         rm.ingridients = ingridients
@@ -80,15 +86,15 @@ class receipt_model(abstract_model):
     
     """Создание рецепта вафель"""
     @staticmethod
-    def create_waffles_receipt():
+    def create_waffles_receipt(repo=None):
         name = "ВАФЛИ ХРУСТЯЩИЕ В ВАФЕЛЬНИЦЕ"
 
         products = []
-        products+=[(nomenclature_model.create_butter(),70.0)]
-        products+=[(nomenclature_model.create_sugar(),80.0)]
-        products+=[(nomenclature_model.create_flour(),100.0)]
-        products+=[(nomenclature_model.create_eggs(),1.0)]
-        products+=[(nomenclature_model.create_vanilla(),5.0)]
+        products+=[(nomenclature_model.create_butter(repo),70.0)]
+        products+=[(nomenclature_model.create_sugar(repo),80.0)]
+        products+=[(nomenclature_model.create_flour(repo),100.0)]
+        products+=[(nomenclature_model.create_eggs(repo),1.0)]
+        products+=[(nomenclature_model.create_vanilla(repo),5.0)]
 
         steps = [
         "Как испечь вафли хрустящие в вафельнице? Подготовьте необходимые продукты. Из данного количества у меня получилось 8 штук диаметром около 10 см.",
@@ -100,21 +106,21 @@ class receipt_model(abstract_model):
         "Разогрейте вафельницу по инструкции к ней. У меня очень старая, еще советских времен электровафельница. Она может и не очень красивая, но печет замечательно! Я не смазываю вафельницу маслом, в тесте достаточно жира, да и к ней уже давно ничего не прилипает. Но вы смотрите по своей модели. Выкладывайте тесто по столовой ложке. Можно класть немного меньше теста, тогда вафли будут меньше и их получится больше.",
         "Пеките вафли несколько минут до золотистого цвета. Осторожно откройте вафельницу, она очень горячая! Снимите вафлю лопаткой. Горячая она очень мягкая, как блинчик."
         ]
-        return receipt_model.create(name, products, steps)
+        return receipt_model.create(name, products, steps,repo=repo)
     
     """Создание рецепта пирога"""
     @staticmethod
-    def create_pie_receipt():
+    def create_pie_receipt(repo=None):
         name = "ПИРОГ ЗЕБРА"
 
         products = []
-        products+=[(nomenclature_model.create_butter(),150.0)]
-        products+=[(nomenclature_model.create_sugar(),240.0)]
-        products+=[(nomenclature_model.create_flour(),250.0)]
-        products+=[(nomenclature_model.create_eggs(),5.0)]
-        products+=[(nomenclature_model.create_soda(),5.0)]
-        products+=[(nomenclature_model.create_cacao(),20.0)]
-        products+=[(nomenclature_model.create_sour_cream(),200.0)]
+        products+=[(nomenclature_model.create_butter(repo),150.0)]
+        products+=[(nomenclature_model.create_sugar(repo),240.0)]
+        products+=[(nomenclature_model.create_flour(repo),250.0)]
+        products+=[(nomenclature_model.create_eggs(repo),5.0)]
+        products+=[(nomenclature_model.create_soda(repo),5.0)]
+        products+=[(nomenclature_model.create_cacao(repo),20.0)]
+        products+=[(nomenclature_model.create_sour_cream(repo),200.0)]
 
         steps = [
         "Яйца взбить с сахаром до белой пены.",
@@ -124,7 +130,7 @@ class receipt_model(abstract_model):
         "Тесто должно быть консистенции негустой сметаны.",
         "Широкую форму (26-28 см) смазать маслом. Вливать в центр поочередно небольшие порции разного теста (по столовой ложке). Не перемешивать!",
         "Выпекать пирог «Зебра» в предварительно разогретой духовке при температуре 190-200 градусов в течение получаса. Постоянно поглядывать. Если верх пирога уже пропечется, а середина еще нет - следует накрыть пирог фольгой, уменьшить температуру до 180 градусов и выпекать пирог «Зебра» до готовности."]
-        return receipt_model.create(name, products, steps)
+        return receipt_model.create(name, products, steps,repo=repo)
 
 
 
