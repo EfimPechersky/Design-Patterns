@@ -68,6 +68,17 @@ class TestModels:
         #Проверка
         assert result==True
     
+    #Проверка загрузки формата
+    def test_load_response_format(self):
+        #Подготовка
+        filename = './settings.json'
+        sm = settings_manager()
+        sm.file_name=filename
+        #Действие
+        sm.load()
+        #Проверка
+        assert sm.settings().response_format=="csv"
+    
     #Тестирование копирования настроек из загруженной модели организации
     def test_copy_company_model_from_settings_manager(self):
         #Подготовка
@@ -237,9 +248,9 @@ class TestModels:
         ("name","A"*51, pytest.raises(argument_exception)),
         ("name",1, pytest.raises(argument_exception)),
         ("name",None, pytest.raises(argument_exception)),
-        ("ingridients",[(nomenclature_model.create_eggs(),1.0)], does_not_raise()),
-        ("ingridients",[("nomenclature_model.create_eggs()",1.0)], pytest.raises(argument_exception)),
-        ("ingridients",[(nomenclature_model.create_eggs(),"1")], pytest.raises(argument_exception)),
+        ("ingridients",[(nomenclature_model.create_eggs(),1.0,range_model.create_num())], does_not_raise()),
+        ("ingridients",[("nomenclature_model.create_eggs()",1.0,range_model.create_num())], pytest.raises(argument_exception)),
+        ("ingridients",[(nomenclature_model.create_eggs(),"1",range_model.create_num())], pytest.raises(argument_exception)),
         ("ingridients",{"nomenclature_model.create_eggs()":1.0}, pytest.raises(argument_exception)),
         ("ingridients",None, pytest.raises(argument_exception)),
         ("steps",["Шаг 1","Шаг 2"], does_not_raise()),
@@ -256,45 +267,7 @@ class TestModels:
             #Проверка
             assert getattr(rm,attr_name,None) == attr_value
     
-    #Тестирование добавления нового ингридиента
-    @pytest.mark.parametrize("nomenclature, number, result", [
-        (nomenclature_model.create_eggs(), 1.0, does_not_raise()),
-        ("nomenclature_model.create_eggs()", 1.0, pytest.raises(argument_exception)),
-        (nomenclature_model.create_eggs(), "1", pytest.raises(argument_exception)),
-        (None, 1.0, pytest.raises(argument_exception)),
-        (nomenclature_model.create_eggs(), None, pytest.raises(argument_exception))
-    ])
-    def test_add_new_ingridient_to_receipt(self,nomenclature, number, result):
-        #Подготовка
-        rm = receipt_model()
-        #Проверка на наличие ошибок
-        with result:
-            #Действие
-            rm.add_new_proportion(nomenclature,number)
-            #Проверка
-            assert rm.ingridients[0][0]==nomenclature
-            assert rm.ingridients[0][1]==number
     
-    #Тестирование добавление нового шага в рецепт
-    @pytest.mark.parametrize("step, number, result", [
-        ("Шаг 1", 0, does_not_raise()),
-        ("Шаг 1", -1, does_not_raise()),
-        ("Шаг 1", "1", pytest.raises(argument_exception)),
-        ("Шаг 1", 10, pytest.raises(argument_exception)),
-        ("Шаг 1", -10, pytest.raises(argument_exception)),
-        (1, 0, pytest.raises(argument_exception)),
-        (None, 1, pytest.raises(argument_exception)),
-        ("Шаг 1", None, pytest.raises(argument_exception))
-    ])
-    def test_add_new_step_to_receipt(self,step, number, result):
-        #Подготовка
-        rm = receipt_model()
-        #Проверка на наличие ошибок
-        with result:
-            #Действие
-            rm.add_step(step,number)
-            #Проверка
-            assert rm.steps[number]==step
            
 
 

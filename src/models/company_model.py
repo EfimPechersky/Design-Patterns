@@ -97,6 +97,9 @@ class company_model(abstract_model):
         if validator.validate(value, str, 5):
             self.__type_of_own = value.strip()
     
+    def __repr__(self):
+        return "Компания "+super().__repr__()
+    
     
 
 

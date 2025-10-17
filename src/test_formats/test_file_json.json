@@ -1,0 +1,12 @@
+{
+	"test":{
+		"base_range":"None",
+		"coeff":"1.0",
+		"id":""
+	},
+	"second_test":{
+		"base_range":"Единица измерения test",
+		"coeff":"10.0",
+		"id":""
+	}
+}

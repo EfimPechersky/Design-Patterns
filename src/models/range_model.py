@@ -87,3 +87,6 @@ class range_model(abstract_model):
         item = range_model(name,coeff,base)
         return item
 
+    def __repr__(self):
+        return "Единица измерения "+super().__repr__()
+

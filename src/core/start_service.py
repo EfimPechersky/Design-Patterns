@@ -1,4 +1,4 @@
-from Core.validator import validator
+from Core.validator import validator,argument_exception
 from Core.repository import repository
 from Models.nomenclature_model import nomenclature_model
 from Models.range_model import range_model
@@ -65,4 +65,22 @@ class start_service:
         self.default_create_group()
         self.default_create_nomenclature()
         self.default_create_receipt()
+    
+    """Добавление ингридиента в список"""
+    def add_new_proportion(receipt, nomenclature, number,range):
+        validator.validate(nomenclature, nomenclature_model)
+        validator.validate(number, float)
+        validator.validate(range,range_model)
+        receipt.ingridients+=[(nomenclature,number,range)]
+
+    """Добавление шага приготовления"""
+    def add_step(receipt, step, number=-1):
+        validator.validate(step,str)
+        validator.validate(number, int)
+        if number<-1 or number>len(receipt.steps):
+            raise argument_exception("Номер шага рецепта неверен")
+        if number != -1 and number<len(receipt.steps):
+            receipt.steps = receipt.steps[:number] +[step] + receipt.steps[number:]
+        else:
+            receipt.steps+=[step]
     

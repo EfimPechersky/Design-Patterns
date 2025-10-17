@@ -4,6 +4,8 @@ from Models.group_model import nomenclature_group_model
 from Models.nomenclature_model import nomenclature_model
 from Models.receipt_model import receipt_model
 from Core.repository import repository
+from Core.validator import validator,argument_exception,operation_exception
+from contextlib import nullcontext as does_not_raise
 import pytest
 #Тестирование работы сервиса
 class TestStartService:
@@ -85,3 +87,44 @@ class TestStartService:
     def test_start_service_receipt_is_right(self, ind, receipt):
         # проверка
         assert self.__start_service.repository.data[repository.receipt_key][ind] is receipt
+    
+
+    #Тестирование добавления нового ингридиента
+    @pytest.mark.parametrize("nomenclature, number,range, result", [
+        (nomenclature_model.create_eggs(), 1.0,range_model.create_num(), does_not_raise()),
+        ("nomenclature_model.create_eggs()", 1.0,range_model.create_num(), pytest.raises(argument_exception)),
+        (nomenclature_model.create_eggs(), "1",range_model.create_num(), pytest.raises(argument_exception)),
+        (None, 1.0,range_model.create_num(), pytest.raises(argument_exception)),
+        (nomenclature_model.create_eggs(), None,range_model.create_num(), pytest.raises(argument_exception))
+    ])
+    def test_add_new_ingridient_to_receipt(self,nomenclature, number,range, result):
+        #Подготовка
+        rm = receipt_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            start_service.add_new_proportion(rm,nomenclature,number,range)
+            #Проверка
+            assert rm.ingridients[0][0]==nomenclature
+            assert rm.ingridients[0][1]==number
+    
+    #Тестирование добавление нового шага в рецепт
+    @pytest.mark.parametrize("step, number, result", [
+        ("Шаг 1", 0, does_not_raise()),
+        ("Шаг 1", -1, does_not_raise()),
+        ("Шаг 1", "1", pytest.raises(argument_exception)),
+        ("Шаг 1", 10, pytest.raises(argument_exception)),
+        ("Шаг 1", -10, pytest.raises(argument_exception)),
+        (1, 0, pytest.raises(argument_exception)),
+        (None, 1, pytest.raises(argument_exception)),
+        ("Шаг 1", None, pytest.raises(argument_exception))
+    ])
+    def test_add_new_step_to_receipt(self,step, number, result):
+        #Подготовка
+        rm = receipt_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            start_service.add_step(rm,step,number)
+            #Проверка
+            assert rm.steps[number]==step

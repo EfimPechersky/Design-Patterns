@@ -59,3 +59,5 @@ class nomenclature_group_model(abstract_model):
         nmg = nomenclature_group_model()
         nmg.name=name
         return nmg
+    def __repr__(self):
+        return "Группа "+super().__repr__()

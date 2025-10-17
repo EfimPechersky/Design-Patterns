@@ -1,0 +1,14 @@
+<List>
+<Единица_измерения_test>
+	<base_range>None</base_range>
+	<coeff>1.0</coeff>
+	<id></id>
+	<name>test</name>
+</Единица_измерения_test>
+<Единица_измерения_second_test>
+	<base_range>Единица измерения test</base_range>
+	<coeff>10.0</coeff>
+	<id></id>
+	<name>second_test</name>
+</Единица_измерения_second_test>
+</List>

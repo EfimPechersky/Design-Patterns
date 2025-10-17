@@ -55,3 +55,6 @@ class abstract_model(abc.ABC):
     def name(self, value:str):
         if validator.validate(value, str, 50):
             self.__name = value.strip()
+    
+    def __repr__(self):
+        return self.name

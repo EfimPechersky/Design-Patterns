@@ -131,9 +131,12 @@ class nomenclature_model(abstract_model):
                     return i
         nm = nomenclature_model()
         nm.full_name=full_name
+        nm.name=full_name
         nm.group=group
         nm.range_count=range
         return nm
+    def __repr__(self):
+        return "Номенклатура "+super().__repr__()
 
 
     
