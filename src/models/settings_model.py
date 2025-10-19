@@ -32,4 +32,4 @@ class settings_model(abstract_model):
         self.__response_format = value
     
     def __repr__(self):
-        return "Настройки компании "+super().__repr__()
+        return "Settings"+super().__repr__()

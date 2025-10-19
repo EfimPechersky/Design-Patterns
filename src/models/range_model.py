@@ -79,7 +79,7 @@ class range_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.range_key]:
+            for i in repo.data[repo.range_key]:
                 if i.name==name:
                     return i
         if not base is None:
@@ -88,5 +88,5 @@ class range_model(abstract_model):
         return item
 
     def __repr__(self):
-        return "Единица измерения "+super().__repr__()
+        return "Range "+super().__repr__()
 

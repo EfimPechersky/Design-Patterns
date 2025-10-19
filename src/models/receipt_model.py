@@ -60,7 +60,7 @@ class receipt_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.receipt_key]:
+            for i in repo.data[repo.receipt_key]:
                 if i.name==name:
                     return i
         rm = receipt_model()
@@ -118,7 +118,7 @@ class receipt_model(abstract_model):
         return receipt_model.create(name, products, steps,repo=repo)
 
     def __repr__(self):
-        return "Рецепт "+super().__repr__()
+        return "Receipt "+super().__repr__()
 
 
 

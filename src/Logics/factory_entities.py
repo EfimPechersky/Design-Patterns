@@ -4,7 +4,8 @@ from Logics.response_md import response_md
 from Logics.response_json import response_json
 from Logics.response_xml import response_xml
 from Core.validator import operation_exception
-from Models.settings_manager import settings_manager
+from Models.settings_model import settings_model
+
 #Класс создающий форматы
 class factory_entities:
     __match = {
@@ -23,8 +24,5 @@ class factory_entities:
         return self.__match[format]
     
     #Получить формат из настроек
-    def create_default(self, filename) ->abstract_response:
-        sm=settings_manager()
-        sm.file_name=filename
-        sm.load()
-        return self.create(sm.settings().response_format)
+    def create_default(self, settings:settings_model) ->abstract_response:
+        return self.create(settings.response_format)
