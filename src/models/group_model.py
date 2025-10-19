@@ -53,9 +53,11 @@ class nomenclature_group_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.group_key]:
+            for i in repo.data[repo.group_key]:
                 if i.name==name:
                     return i
         nmg = nomenclature_group_model()
         nmg.name=name
         return nmg
+    def __repr__(self):
+        return "Group "+super().__repr__()

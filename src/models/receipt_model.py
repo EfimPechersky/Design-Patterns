@@ -2,12 +2,12 @@ from .abstract_model import abstract_model
 from .nomenclature_model import nomenclature_model
 from Core.validator import validator, operation_exception, argument_exception
 from Core.repository import repository
+from Models.range_model import range_model
 import os
 """Класс, описывающий рецепты"""
 class receipt_model(abstract_model):
     __ingridients:list=[]
     __steps:list=[]
-    __receipt_storage={}
 
     def __init__(self):
         super().__init__()
@@ -23,15 +23,12 @@ class receipt_model(abstract_model):
         validator.validate(other,list)
         for i in other:
             validator.validate(i, tuple)
+            if len(i)<3:
+                raise argument_exception("Недостаточно параметров ингридиента")
             validator.validate(i[0],nomenclature_model)
             validator.validate(i[1],float)
+            validator.validate(i[2],range_model)
         self.__ingridients=other
-    
-    """Добавление ингридиента в список"""
-    def add_new_proportion(self, nomenclature, number):
-        validator.validate(nomenclature, nomenclature_model)
-        validator.validate(number, float)
-        self.__ingridients+=[(nomenclature,number)]
 
     """Шаги пригтовления"""
     @property
@@ -44,19 +41,7 @@ class receipt_model(abstract_model):
         validator.validate(other,list)
         for i in other:
             validator.validate(i,str)
-        self.__steps=other
-    
-    """Добавление шага приготовления"""
-    def add_step(self, step, number=-1):
-        validator.validate(step,str)
-        validator.validate(number, int)
-        if number<-1 or number>len(self.steps):
-            raise argument_exception("Номер шага рецепта неверен")
-        if number != -1 and number<len(self.steps):
-            self.steps = self.steps[:number] +[step] + self.steps[number:]
-        else:
-            self.steps+=[step]
-    
+        self.__steps=other   
     
     @staticmethod
     def create(name, ingridients, steps, repo=None):
@@ -75,7 +60,7 @@ class receipt_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.receipt_key]:
+            for i in repo.data[repo.receipt_key]:
                 if i.name==name:
                     return i
         rm = receipt_model()
@@ -90,11 +75,11 @@ class receipt_model(abstract_model):
         name = "ВАФЛИ ХРУСТЯЩИЕ В ВАФЕЛЬНИЦЕ"
 
         products = []
-        products+=[(nomenclature_model.create_butter(repo),70.0)]
-        products+=[(nomenclature_model.create_sugar(repo),80.0)]
-        products+=[(nomenclature_model.create_flour(repo),100.0)]
-        products+=[(nomenclature_model.create_eggs(repo),1.0)]
-        products+=[(nomenclature_model.create_vanilla(repo),5.0)]
+        products+=[(nomenclature_model.create_butter(repo),70.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_sugar(repo),80.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_flour(repo),100.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_eggs(repo),1.0,range_model.create_num(repo))]
+        products+=[(nomenclature_model.create_vanilla(repo),5.0,range_model.create_gramm(repo))]
 
         steps = [
         "Как испечь вафли хрустящие в вафельнице? Подготовьте необходимые продукты. Из данного количества у меня получилось 8 штук диаметром около 10 см.",
@@ -114,13 +99,13 @@ class receipt_model(abstract_model):
         name = "ПИРОГ ЗЕБРА"
 
         products = []
-        products+=[(nomenclature_model.create_butter(repo),150.0)]
-        products+=[(nomenclature_model.create_sugar(repo),240.0)]
-        products+=[(nomenclature_model.create_flour(repo),250.0)]
-        products+=[(nomenclature_model.create_eggs(repo),5.0)]
-        products+=[(nomenclature_model.create_soda(repo),5.0)]
-        products+=[(nomenclature_model.create_cacao(repo),20.0)]
-        products+=[(nomenclature_model.create_sour_cream(repo),200.0)]
+        products+=[(nomenclature_model.create_butter(repo),150.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_sugar(repo),240.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_flour(repo),250.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_eggs(repo),5.0,range_model.create_num(repo))]
+        products+=[(nomenclature_model.create_soda(repo),5.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_cacao(repo),20.0,range_model.create_gramm(repo))]
+        products+=[(nomenclature_model.create_sour_cream(repo),200.0,range_model.create_milliliter(repo))]
 
         steps = [
         "Яйца взбить с сахаром до белой пены.",
@@ -131,6 +116,9 @@ class receipt_model(abstract_model):
         "Широкую форму (26-28 см) смазать маслом. Вливать в центр поочередно небольшие порции разного теста (по столовой ложке). Не перемешивать!",
         "Выпекать пирог «Зебра» в предварительно разогретой духовке при температуре 190-200 градусов в течение получаса. Постоянно поглядывать. Если верх пирога уже пропечется, а середина еще нет - следует накрыть пирог фольгой, уменьшить температуру до 180 градусов и выпекать пирог «Зебра» до готовности."]
         return receipt_model.create(name, products, steps,repo=repo)
+
+    def __repr__(self):
+        return "Receipt "+super().__repr__()
 
 
 

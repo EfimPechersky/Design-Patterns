@@ -6,7 +6,6 @@ import abc
 class abstract_model(abc.ABC):
     __id = ""
     __name:str = ""
-
     @abc.abstractmethod
     def __init__(self):
         pass
@@ -55,3 +54,5 @@ class abstract_model(abc.ABC):
     def name(self, value:str):
         if validator.validate(value, str, 50):
             self.__name = value.strip()
+    def __repr__(self):
+        return self.name

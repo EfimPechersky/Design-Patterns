@@ -126,14 +126,17 @@ class nomenclature_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.nomenclature_key]:
+            for i in repo.data[repo.nomenclature_key]:
                 if i.full_name==full_name:
                     return i
         nm = nomenclature_model()
         nm.full_name=full_name
+        nm.name=full_name
         nm.group=group
         nm.range_count=range
         return nm
+    def __repr__(self):
+        return "Nomenclature "+super().__repr__()
 
 
     

@@ -1,0 +1,1 @@
+{"Range test": {"base_range": null, "coeff": 1.0, "id": "", "name": "test"}, "Range second_test": {"base_range": {"base_range": null, "coeff": 1.0, "id": "", "name": "test"}, "coeff": 10.0, "id": "", "name": "second_test"}}

@@ -79,11 +79,14 @@ class range_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repository.range_key]:
+            for i in repo.data[repo.range_key]:
                 if i.name==name:
                     return i
         if not base is None:
             validator.validate(base,range_model)
         item = range_model(name,coeff,base)
         return item
+
+    def __repr__(self):
+        return "Range "+super().__repr__()
 

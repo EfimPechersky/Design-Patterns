@@ -43,29 +43,37 @@ class settings_manager:
     """Запись настроек из словаря в company_model"""
     def convert(self,data:dict)->bool:
         validator.validate(data, dict)
-
+        if "company" not in data.keys():
+            return False
+        validator.validate(data["company"], dict)
+        if "response_format" not in data.keys():
+            return False
+        validator.validate(data["response_format"], str)
+        self.__settings.response_format=data["response_format"]
         fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
-        matching_keys = list(filter(lambda key: key in fields, data.keys()))
-
+        matching_keys = list(filter(lambda key: key in fields, data["company"].keys()))
         try:
             for key in matching_keys:
-                setattr(self.__settings.company, key, data[key])
+                setattr(self.__settings.company, key, data["company"][key])
         except:
             return False        
 
         return True
-    
+
     """Выгрузка настроек из файла в словарь"""
     def load(self) -> bool:
+        fields=["company","response_format"]
+        data={}
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")
 
         try:
             with open( self.__full_file_name, 'r') as file_instance:
                 settings = json.load(file_instance)
-
-                if "company" in settings.keys():
-                    data = settings["company"]
+                for i in fields:
+                    if i in settings.keys():
+                        data[i] = settings[i]
+                if len(data.keys())>0:
                     return self.convert(data)
 
             return False
@@ -82,6 +90,7 @@ class settings_manager:
         self.__settings.company.cor_account=0
         self.__settings.company.BIK=0
         self.__settings.company.type_of_own="AAAAA"
+        self.__settings.response_format="csv"
 
     
                     

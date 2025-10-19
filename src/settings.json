@@ -1,4 +1,5 @@
 {
+    "response_format":"csv",
     "company":{
         "name":"Romashka",
         "inn":23213122,
