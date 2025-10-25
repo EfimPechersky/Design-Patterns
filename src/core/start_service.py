@@ -64,7 +64,6 @@ class start_service:
             return False
         except Exception as e:
             error_message = str(e)
-            print(error_message)
             return False
         
     # Сохранить элемент в репозитории

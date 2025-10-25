@@ -40,9 +40,9 @@ class abstract_dto:
             raise   operation_exception("Невозможно загрузить данные!")    
         return self
     
-    # Универсальный фабричный метод для загрузщки dto из словаря
+    # Универсальный фабричный метод для словаря из dto
     @abc.abstractmethod
-    def to_dict(self) -> "abstract_dto":
+    def to_dict(self) -> dict:
         dict={}
         fields = common.get_fields(self)
         try:
