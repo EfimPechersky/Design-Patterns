@@ -147,7 +147,9 @@ class TestLogics:
         factory = factory_entities()
         data = []
         entity = range_model("test",1.0)
+        entity.id="123"
         second_entity = range_model("second_test",10.0,entity)
+        second_entity.id="321"
         data.append( entity )
         data.append( second_entity )
 

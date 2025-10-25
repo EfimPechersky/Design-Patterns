@@ -8,9 +8,14 @@ class response_md(abstract_response):
     # Сформировать Markdown
     def build(self, format:str, data: list):
         text = super().build(format, data)
+        dct=[]
+        # Данные
+        for i in data:
+            dct+=[i.to_dto().to_dict()]
         
-        item = data [ 0 ]
-        fields = common.get_fields( item )
+        fields=[]
+        for i in dct[0].keys():
+            fields.append(i)
         for field in fields:
             text += f"|{field}"
         text += "|\n"
@@ -18,9 +23,8 @@ class response_md(abstract_response):
             text += f"|{len(field)*"-"}"
         text += "|\n"
         # Данные
-        for i in data:
+        for i in dct:
             for field in fields:
-                atr=str(getattr(i,field))
-                text+=f"|{atr}"
+                text+=f"|{i[field]}"
             text+="|\n"
         return text

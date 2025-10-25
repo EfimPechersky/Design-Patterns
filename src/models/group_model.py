@@ -1,10 +1,10 @@
 from .abstract_model import abstract_model
 from Core.validator import validator
 from Core.repository import repository
+from Core.abstract_dto import abstract_dto
+from Dto.group_dto import group_dto
 """Класс, описывающий группу номенклатуры"""
 class nomenclature_group_model(abstract_model):
-
-    __group_storage:dict={}
 
     def __init__(self):
         super().__init__()
@@ -53,11 +53,30 @@ class nomenclature_group_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repo.group_key]:
+            for i in repo.data[repository.group_key()]:
                 if i.name==name:
                     return i
         nmg = nomenclature_group_model()
         nmg.name=name
         return nmg
+
+    """
+    Фабричный метод из Dto
+    """
+    @staticmethod
+    def from_dto(dto:abstract_dto, cache:dict):
+        item  = nomenclature_group_model()
+        item.name = dto.name
+        item.id = dto.id
+        return item
+    
+    """
+    Фабричный метод в Dto
+    """
+    def to_dto(self):
+        item  = group_dto()
+        item.name = self.name
+        item.id = self.id
+        return item
     def __repr__(self):
         return "Group "+super().__repr__()

@@ -1,19 +1,9 @@
-<List><range>
-	<base_range>None</base_range>
+<List><range>	<base_id>None</base_id>
 	<coeff>1.0</coeff>
 	<id></id>
 	<name>test</name>
-</range>
-<range>
-	<base_range><range>
-	<base_range>None</base_range>
-	<coeff>1.0</coeff>
-	<id></id>
-	<name>test</name>
-</range>
-</base_range>
+</range><range>	<base_id></base_id>
 	<coeff>10.0</coeff>
 	<id></id>
 	<name>second_test</name>
-</range>
-</List>
+</range></List>

@@ -10,16 +10,20 @@ class response_csv(abstract_response):
     def build(self, format:str, data: list):
         text = super().build(format, data)
 
+        dct=[]
+        # Данные
+        for i in data:
+            dct+=[i.to_dto().to_dict()]
+        fields=[]
+        for i in dct[0].keys():
+            fields.append(i)
         # Шапка
-        item = data [ 0 ]
-        fields = common.get_fields( item )
         for field in fields:
             text += f"{field};"
         text += "\n"
         # Данные
-        for i in data:
+        for i in dct:
             for field in fields:
-                atr=str(getattr(i,field))
-                text+=f"{atr};"
+                text+=f"{i[field]};"
             text+="\n"
         return text

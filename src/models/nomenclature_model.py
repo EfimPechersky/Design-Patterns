@@ -1,6 +1,7 @@
 from .abstract_model import abstract_model
 from .range_model import range_model
 from .group_model import nomenclature_group_model
+from Dto.nomenclature_dto import nomenclature_dto
 from Core.validator import validator
 from Core.repository import repository
 """Класс, описывающий номенклатуру на складе"""
@@ -82,7 +83,7 @@ class nomenclature_model(abstract_model):
     def create_eggs(repo=None):
         group = nomenclature_group_model.create_animal_products()
         range = range_model.create_num(repo)
-        full_name="Яйца"
+        full_name="Яйцо"
         return nomenclature_model.create(full_name,group,range,repo=repo)
     
     """Создание номенклатуры сметаны"""
@@ -126,7 +127,7 @@ class nomenclature_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repo.nomenclature_key]:
+            for i in repo.data[repository.nomenclature_key()]:
                 if i.full_name==full_name:
                     return i
         nm = nomenclature_model()
@@ -137,6 +138,28 @@ class nomenclature_model(abstract_model):
         return nm
     def __repr__(self):
         return "Nomenclature "+super().__repr__()
+    
+    """
+    Фабричный метод из Dto
+    """
+    def from_dto(dto:nomenclature_dto, cache:dict):
+        validator.validate(dto, nomenclature_dto)
+        validator.validate(cache, dict)
+        range =  cache[ dto.range_id ] if dto.range_id in cache else None
+        category =  cache[ dto.group_id] if dto.group_id in cache else None
+        item  = nomenclature_model.create(dto.name, category, range)
+        return item
+    
+    """
+    Фабричный метод в Dto
+    """
+    def to_dto(self):
+        item = nomenclature_dto()
+        item.id = self.id
+        item.name=self.name
+        item.group_id = self.group.id
+        item.range_id = self.range_count.id
+        return item
 
 
     

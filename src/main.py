@@ -56,5 +56,5 @@ def default_info(type):
                content_type=ct[sm.settings().response_format]+";charset=utf-8")
 
 if __name__ == '__main__':
-    service.start()
+    service.start(file=True)
     app.run(host="0.0.0.0", port = 8000)

@@ -6,21 +6,41 @@ class repository:
         return self.__data
     
     """Ключ доступа к единицам измерения"""
-    @property
-    def range_key(self):
+    @staticmethod
+    def range_key():
         return "range_model"
     
     """Ключ доступа к группам номенклатуры"""
-    @property
-    def group_key(self):
+    @staticmethod
+    def group_key():
         return "group_model"
     
     """Ключ доступа к номенклатурам"""
-    @property
-    def nomenclature_key(self):
+    @staticmethod
+    def nomenclature_key():
         return "nomenclature_model"
     
     """Ключ доступа к рецептам"""
-    @property
-    def receipt_key(self):
+    @staticmethod
+    def receipt_key():
         return "receipt_model"
+    
+    @staticmethod
+    def keys() -> list:
+        result = []
+        methods = [method for method in dir(repository) if
+                    callable(getattr(repository, method)) and method.endswith('_key')]
+        for method in methods:
+            key = getattr(repository, method)()
+            result.append(key)
+
+        return result
+
+    
+    """
+    Инициализация
+    """
+    def initalize(self):
+        keys = repository.keys()
+        for key in keys:
+            self.__data[ key ] = []
