@@ -126,6 +126,7 @@ class receipt_model(abstract_model):
             ingridient=ingridient_model.from_dto(i,cache)
             ingridients+=[ingridient]
         item = receipt_model.create(dto.name, ingridients, dto.steps)
+        item.id=dto.id
         return item
     
     """

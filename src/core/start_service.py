@@ -16,7 +16,7 @@ class start_service:
     __repo: repository = repository()
 
     # Рецепт по умолчанию
-    __default_receipt: receipt_model
+    __default_receipts: list
 
     # Словарь который содержит загруженные и инициализованные инстансы нужных объектов
     # Ключ - id записи, значение - abstract_model
@@ -57,22 +57,22 @@ class start_service:
         try:
             with open( self.__full_file_name, 'r', encoding="UTF-8") as file_instance:
                 settings = json.load(file_instance)
-                if "default_receipt" in settings.keys():
-                    data = settings["default_receipt"]
+                if "default_receipts" in settings.keys():
+                    data = settings["default_receipts"]
                     return self.convert(data)
 
             return False
         except Exception as e:
             error_message = str(e)
-            print(error_message)
             return False
         
     # Сохранить элемент в репозитории
     def __save_item(self, key:str, dto, item):
         validator.validate(key, str)
         item.id = dto.id
-        self.__cache.setdefault(dto.id, item)
-        self.__repo.data[ key ].append(item)
+        if not dto.id in self.__cache.keys():
+            self.__cache.setdefault(dto.id, item)
+            self.__repo.data[ key ].append(item)
 
     # Загрузить единицы измерений   
     def __convert_ranges(self, data: dict) -> bool:
@@ -117,18 +117,19 @@ class start_service:
 
 
     # Обработать полученный словарь    
-    def convert(self, data: dict) -> bool:
-        validator.validate(data, dict)
-        self.__convert_ranges(data)
-        self.__convert_groups(data)
-        self.__convert_nomenclatures(data)  
+    def convert(self, data: list) -> bool:
+        validator.validate(data, list)
+        for receipt in data:
+            self.__convert_ranges(receipt)
+            self.__convert_groups(receipt)
+            self.__convert_nomenclatures(receipt)  
 
 
-        # Собираем рецепт
-        dto=receipt_dto().create(data)
-        self.__default_receipt=receipt_model.from_dto(dto,self.__cache)
-        # Сохраняем рецепт
-        self.__repo.data[ repository.receipt_key() ].append(self.__default_receipt)
+            # Собираем рецепт
+            dto=receipt_dto().create(receipt)
+            default_receipt=receipt_model.from_dto(dto,self.__cache)
+            # Сохраняем рецепт
+            self.__repo.data[ repository.receipt_key() ].append(default_receipt)
         return True
 
     """

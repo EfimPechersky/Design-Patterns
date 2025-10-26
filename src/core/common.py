@@ -25,7 +25,7 @@ class common:
         if source is None:
             raise argument_exception("Некорректно переданы аргументы!")
 
-        items = list(filter(lambda x: not x.startswith("_") , dir(source))) 
+        items = list(filter(lambda x: not x.startswith("_") , dir(source)))
         result = []
 
         for item in items:

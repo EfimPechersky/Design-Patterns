@@ -1,5 +1,5 @@
 from Core.abstract_dto import abstract_dto
-
+#Dto для ингридиента рецепта
 class ingridient_dto(abstract_dto):
     __nomenclature_id:str = ""
     __range_id:str = ""
