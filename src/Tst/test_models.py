@@ -9,6 +9,7 @@ from Models.abstract_model import abstract_model
 from Models.receipt_model import receipt_model
 from Core.validator import validator,argument_exception,operation_exception
 from contextlib import nullcontext as does_not_raise
+from Models.ingridient_model import ingridient_model
 import json
 import uuid
 import pytest
@@ -112,7 +113,7 @@ class TestModels:
     #Тестирование загрузки настроек из файлов в разных директориях
     def test_load_different_settings(self):
         #Подготовка
-        filename1 = "../src/settings.json"
+        filename1 = "./settings.json"
         filename2 = "./SettingsFolder/other_settings.json"
         #Действие
         sm1 = settings_manager()
@@ -239,6 +240,32 @@ class TestModels:
             am=abstract_model()
             assert am.name==""
 
+
+    def test_ingridient_model_creation(self):
+        rm = ingridient_model()
+        assert rm.name == ""
+    #Тестирование присвоения различных параметров модели рецепта
+    @pytest.mark.parametrize("attr_name, attr_value, result", [
+        ("nomenclature",nomenclature_model.create_flour(), does_not_raise()),
+        ("nomenclature","A", pytest.raises(argument_exception)),
+        ("nomenclature",None, pytest.raises(argument_exception)),
+        ("range",range_model.create_gramm(), does_not_raise()),
+        ("range","a", pytest.raises(argument_exception)),
+        ("range",None, pytest.raises(argument_exception)),
+        ("value",1.0, does_not_raise()),
+        ("value",-1.0, pytest.raises(argument_exception)),
+        ("value",None, pytest.raises(argument_exception))])
+    def test_ingridient_model_different_parameters(self,attr_name, attr_value, result):
+        #Подготовка
+        rm = ingridient_model()
+        #Проверка на наличие ошибок
+        with result:
+            #Действие
+            setattr(rm, attr_name, attr_value)
+            #Проверка
+            assert getattr(rm,attr_name,None) == attr_value
+
+
     def test_receipt_model_creation(self):
         rm = receipt_model()
         assert rm.name == ""
@@ -248,10 +275,8 @@ class TestModels:
         ("name","A"*51, pytest.raises(argument_exception)),
         ("name",1, pytest.raises(argument_exception)),
         ("name",None, pytest.raises(argument_exception)),
-        ("ingridients",[(nomenclature_model.create_eggs(),1.0,range_model.create_num())], does_not_raise()),
-        ("ingridients",[("nomenclature_model.create_eggs()",1.0,range_model.create_num())], pytest.raises(argument_exception)),
-        ("ingridients",[(nomenclature_model.create_eggs(),"1",range_model.create_num())], pytest.raises(argument_exception)),
-        ("ingridients",{"nomenclature_model.create_eggs()":1.0}, pytest.raises(argument_exception)),
+        ("ingridients",[ingridient_model.create(nomenclature_model.create_butter(),range_model.create_gramm(),10.0)], does_not_raise()),
+        ("ingridients",0, pytest.raises(argument_exception)),
         ("ingridients",None, pytest.raises(argument_exception)),
         ("steps",["Шаг 1","Шаг 2"], does_not_raise()),
         ("steps",[1,"Шаг 2"], pytest.raises(argument_exception)),

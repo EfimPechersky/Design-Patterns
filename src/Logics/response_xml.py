@@ -1,42 +1,36 @@
 from Core.abstract_response import abstract_response
 from Models.abstract_model import abstract_model
 from Core.common import common
-
+from Convert.convert_factory import convert_factory
 #Формат ответа csv
 class response_xml(abstract_response):
 
+
+    
     #Функция для конвертирования в xml
     def turn_into_xml(self, obj, name=None):
         text=""
         if isinstance(obj, list) or isinstance(obj, tuple):
             for i in obj:
-                name=None
-                if not issubclass(type(i), abstract_model):
-                    name=type(i).__name__
-                text+=self.turn_into_xml(i,name)
+                text+=f"<{name}>"
+                text+=self.turn_into_xml(i)
+                text+=f"</{name}>"
             return text
             
-        elif issubclass(type(obj), abstract_model):
-            fields = common.get_fields(obj)
-            text+=f"<{str(obj).split(" ")[0].lower()}>\n"
-            for field in fields:
-                atr=getattr(obj,field)
-                text+=f"\t<{field}>{self.turn_into_xml(atr)}</{field}>\n"
-            text+=f"</{str(obj).split(" ")[0].lower()}>\n"
+        elif isinstance(obj, dict):
+            for field in obj.keys():
+                text+=f"\t<{field}>{self.turn_into_xml(obj[field], field[:-1])}</{field}>\n"
             return text
         else:
-            if name!=None:
-                return f"<{name}>"+str(obj)+f"</{name}>"
             return str(obj)
     
     # Сформировать XML
     def build(self, format:str, data: list):
         text = super().build(format, data)
-        
-        item = data [0]
-        fields = common.get_fields( item )
+        ab=convert_factory()
+        dct=ab.rec_convert(data)
         text+="<List>"
-        text+=self.turn_into_xml(data)
+        text+=self.turn_into_xml(dct,str(data[0]).split()[0].lower())
         text+="</List>"
         return text
         

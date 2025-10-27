@@ -101,7 +101,9 @@ class TestLogics:
         factory = factory_entities()
         data = []
         entity = range_model("test",1.0)
+        entity.id="123"
         second_entity = range_model("second_test",10.0,entity)
+        second_entity.id="321"
         data.append( entity )
         data.append( second_entity )
 
@@ -124,7 +126,9 @@ class TestLogics:
         factory = factory_entities()
         data = []
         entity = range_model("test",1.0)
+        entity.id="123"
         second_entity = range_model("second_test",10.0,entity)
+        second_entity.id="321"
         data.append( entity )
         data.append( second_entity )
 
@@ -147,9 +151,11 @@ class TestLogics:
         factory = factory_entities()
         data = []
         entity = range_model("test",1.0)
+        entity.id="123"
         second_entity = range_model("second_test",10.0,entity)
-        data.append( entity )
-        data.append( second_entity )
+        second_entity.id="321"
+        data.append(entity)
+        data.append(second_entity)
 
         # Действие
         logic = factory.create( response_formats.json() )
@@ -169,7 +175,9 @@ class TestLogics:
         factory = factory_entities()
         data = []
         entity = range_model("test",1.0)
+        entity.id="123"
         second_entity = range_model("second_test",10.0,entity)
+        second_entity.id="321"
         data.append( entity )
         data.append( second_entity )
 

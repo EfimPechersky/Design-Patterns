@@ -66,9 +66,8 @@ class settings_manager:
         data={}
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")
-
         try:
-            with open( self.__full_file_name, 'r') as file_instance:
+            with open( self.__full_file_name, 'r', encoding="UTF-8") as file_instance:
                 settings = json.load(file_instance)
                 for i in fields:
                     if i in settings.keys():

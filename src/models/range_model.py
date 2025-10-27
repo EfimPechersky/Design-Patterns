@@ -1,6 +1,7 @@
 from .abstract_model import abstract_model
 from Core.validator import validator
 from Core.repository import repository
+from Dto.range_dto import range_dto
 """Класс, описывающий единицу измерения"""
 class range_model(abstract_model):
     __base_range = None
@@ -79,7 +80,7 @@ class range_model(abstract_model):
         """
         if repo!=None:
             validator.validate(repo, repository)
-            for i in repo.data[repo.range_key]:
+            for i in repo.data[repository.range_key()]:
                 if i.name==name:
                     return i
         if not base is None:
@@ -89,4 +90,26 @@ class range_model(abstract_model):
 
     def __repr__(self):
         return "Range "+super().__repr__()
-
+    
+    """
+    Фабричный метод из Dto
+    """
+    def from_dto(dto:range_dto, cache:dict):
+        validator.validate(dto, range_dto)
+        validator.validate(cache, dict)
+        base  = cache[ dto.base_id ] if dto.base_id in cache else None
+        item = range_model.create(dto.name, dto.coeff, base)
+        return item
+    
+    """
+    Фабричный метод в Dto
+    """
+    def to_dto(self):
+        item = range_dto()
+        item.id = self.id
+        item.name=self.name
+        item.coeff = self.coeff
+        item.base_id=None
+        if not self.base_range is None:
+            item.base_id = self.base_range.id
+        return item

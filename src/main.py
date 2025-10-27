@@ -55,6 +55,29 @@ def default_info(type):
     return flask.Response(response=instance.build(sm.settings().response_format,service.repository.data[type]), status=200, 
                content_type=ct[sm.settings().response_format]+";charset=utf-8")
 
+@app.app.route("/GetReceipts", methods=['GET'])
+def get_receipts():
+    rf=fe.create('json')
+    instance = rf()
+
+    return flask.Response(response=instance.build("json",service.repository.data[repository.receipt_key()]), status=200, 
+               content_type="application/json;charset=utf-8")
+
+@app.app.route("/GetReceipt/<code>", methods=['GET'])
+def get_receipt(code):
+    rf=fe.create('json')
+    instance = rf()
+    res=service.repository.data[repository.receipt_key()]
+    receipt=None
+    for i in res:
+        if i.id==code:
+            receipt=i
+    if receipt is None:
+        return flask.Response(response="Неправильный код рецепта!", status=400, 
+               content_type="text/plain;charset=utf-8")
+    return flask.Response(response=instance.build("json",receipt), status=200, 
+               content_type="application/json;charset=utf-8")
+
 if __name__ == '__main__':
-    service.start()
+    service.start(file=True)
     app.run(host="0.0.0.0", port = 8000)

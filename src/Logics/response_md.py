@@ -1,16 +1,19 @@
 from Core.abstract_response import abstract_response
 from Models.abstract_model import abstract_model
 from Core.common import common
-
+from Convert.convert_factory import convert_factory
 #Формат ответа csv
 class response_md(abstract_response):
 
     # Сформировать Markdown
     def build(self, format:str, data: list):
         text = super().build(format, data)
+        ab=convert_factory()
+        dct=ab.rec_convert(data)
         
-        item = data [ 0 ]
-        fields = common.get_fields( item )
+        fields=[]
+        for i in dct[0].keys():
+            fields.append(i)
         for field in fields:
             text += f"|{field}"
         text += "|\n"
@@ -18,9 +21,8 @@ class response_md(abstract_response):
             text += f"|{len(field)*"-"}"
         text += "|\n"
         # Данные
-        for i in data:
+        for i in dct:
             for field in fields:
-                atr=str(getattr(i,field))
-                text+=f"|{atr}"
+                text+=f"|{i[field]}"
             text+="|\n"
         return text

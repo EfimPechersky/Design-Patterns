@@ -1,1 +1,1 @@
-{"Range test": {"base_range": null, "coeff": 1.0, "id": "", "name": "test"}, "Range second_test": {"base_range": {"base_range": null, "coeff": 1.0, "id": "", "name": "test"}, "coeff": 10.0, "id": "", "name": "second_test"}}
+[{"base_id": null, "coeff": 1.0, "id": "123", "name": "test"}, {"base_id": "123", "coeff": 10.0, "id": "321", "name": "second_test"}]
