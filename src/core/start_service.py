@@ -6,11 +6,15 @@ from Core.validator import validator, argument_exception, operation_exception
 import os
 import json
 from Models.receipt_model import receipt_model
+from Models.storage_model import storage_model
+from Models.transaction_model import transaction_model
 from Dto.nomenclature_dto import nomenclature_dto
 from Dto.range_dto import range_dto
 from Dto.group_dto import group_dto
 from Dto.receipt_dto import receipt_dto
-
+from Dto.storage_dto import storage_dto
+from Dto.transaction_dto import transaction_dto
+from Convert.convert_factory import convert_factory
 class start_service:
     # Репозиторий
     __repo: repository = repository()
@@ -57,9 +61,24 @@ class start_service:
         try:
             with open( self.__full_file_name, 'r', encoding="UTF-8") as file_instance:
                 settings = json.load(file_instance)
-                if "default_receipts" in settings.keys():
-                    data = settings["default_receipts"]
-                    return self.convert(data)
+                first_start=settings["first_start"] if "first_start" in settings else False
+                if not first_start:
+                    self.default_create_range()
+                    self.default_create_group()
+                    self.default_create_nomenclature()
+                    self.default_create_receipt()
+                    return True
+                if "receipts" in settings.keys():
+                    data = settings["receipts"]
+                    self.__convert_ranges(settings)
+                    self.__convert_groups(settings)
+                    self.__convert_nomenclatures(settings)
+                    rec_res=self.convert(data)
+                    stor_res=self.__convert_storages(settings)
+                    tran_res=self.__convert_transactions(settings)
+                    return rec_res and stor_res and tran_res
+                    
+                    
 
             return False
         except Exception as e:
@@ -113,18 +132,36 @@ class start_service:
             item = nomenclature_model.from_dto(dto, self.__cache)
             self.__save_item( repository.nomenclature_key(), dto, item )
 
-        return True        
+        return True   
 
+    def __convert_storages(self, data: dict) -> bool:
+        validator.validate(data, dict)
+        storages = data['storages'] if 'storages' in data else []
+        if len(storages) == 0:
+            return False
+        for storage in storages:
+            dto = storage_dto().create(storage)
+            item = storage_model.from_dto(dto, self.__cache)
+            self.__save_item( repository.storage_key(), dto, item )
+
+        return True       
+
+    def __convert_transactions(self, data: dict) -> bool:
+        validator.validate(data, dict)      
+        transactions = data['transactions'] if 'transactions' in data else []   
+        if len(transactions) == 0:
+            return False
+        for transaction in transactions:
+            dto = transaction_dto().create(transaction)
+            item = transaction_model.from_dto(dto, self.__cache)
+            self.__save_item( repository.transaction_key(), dto, item )
+
+        return True 
 
     # Обработать полученный словарь    
     def convert(self, data: list) -> bool:
         validator.validate(data, list)
         for receipt in data:
-            self.__convert_ranges(receipt)
-            self.__convert_groups(receipt)
-            self.__convert_nomenclatures(receipt)  
-
-
             # Собираем рецепт
             dto=receipt_dto().create(receipt)
             default_receipt=receipt_model.from_dto(dto,self.__cache)
@@ -181,7 +218,50 @@ class start_service:
         self.__repo.data[repository.receipt_key()].append(receipt_model.create_pie_receipt(self.__repo))
     
         
+    def create_osv(self, start, end, storage_id):
+        transactions=self.__repo.data[repository.transaction_key()]
+        nomenclatures = self.__repo.data[repository.nomenclature_key()]
+        osv={}
+        for nomenclature in nomenclatures:
+            range=nomenclature.range_count
+            if not nomenclature.range_count.base_range is None:
+                range=nomenclature.range_count.base_range
+            osv[nomenclature.name]=[0.0,0.0,0.0,0.0,range]
+        for transaction in transactions:
+            if transaction.storage.id==storage_id and transaction.date<=end:
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==osv[transaction.nomenclature.name][4]:
+                        num=num*transaction.range.coeff
+                if transaction.date<=start:
+                    osv[transaction.nomenclature.name][0]+=num
+                if transaction.date>=start:
+                    if transaction.num>0:
+                        osv[transaction.nomenclature.name][1]+=num
+                    else:
+                        osv[transaction.nomenclature.name][2]+=num
+                osv[transaction.nomenclature.name][3]+=num
+        res=[]
+        for i in osv:
+            res+=[{"Номенклатура":i,"Единица измерения":osv[i][4].name,"Начальный остаток":osv[i][0],"Приход":osv[i][1],"Расход":osv[i][2],"Конечный остаток":osv[i][3]}]
+        return res
 
+    def dump(self, filename):
+        if self.__full_file_name == "":
+            raise operation_exception("Не найден файл настроек!")
+        try:
+            alldata={}
+            cf=convert_factory()
+            for k in repository.keys():
+                alldata[k]=[]
+                for i in self.__repo.data[k]:
+                    alldata[k]+=[cf.rec_convert(i)]
+            with open(filename, 'w', encoding="UTF-8") as file_instance:
+                json.dump(alldata,file_instance,ensure_ascii=False)
+            return True
+        except Exception as e:
+            error_message = str(e)
+            return False
     """
     Основной метод для генерации эталонных данных
     """
@@ -191,8 +271,8 @@ class start_service:
             result = self.load()
             if result == False:
                 raise operation_exception("Невозможно сформировать стартовый набор данных!")
-        else:
-            self.default_create_range()
-            self.default_create_group()
-            self.default_create_nomenclature()
-            self.default_create_receipt()
+            return
+        self.default_create_range()
+        self.default_create_group()
+        self.default_create_nomenclature()
+        self.default_create_receipt()

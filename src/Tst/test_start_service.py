@@ -8,7 +8,9 @@ from Core.repository import repository
 from Core.validator import validator,argument_exception,operation_exception
 from contextlib import nullcontext as does_not_raise
 from Dto.receipt_dto import receipt_dto
+from Logics.response_csv import response_csv
 import pytest
+from datetime import datetime
 #Тестирование работы сервиса
 class TestStartService:
     __start_service = start_service()
@@ -90,3 +92,21 @@ class TestStartService:
     def test_start_service_receipt_is_right(self, ind, receipt):
         # проверка
         assert self.__start_service.repository.data[repository.receipt_key()][ind] is receipt
+
+    #Тестирование создания ОСВ
+    def test_create_osv(self):
+        #Подготовка
+        start=datetime.strptime("10-10-2025", "%d-%m-%Y")
+        end=datetime.strptime("01-11-2025", "%d-%m-%Y")
+        storage_id=self.__start_service.data[repository.storage_key()][0].id
+        #Действие
+        osv=self.__start_service.create_osv(start, end, storage_id)
+        #Проверка
+        assert len(osv)==len(self.__start_service.data[repository.nomenclature_key()])
+
+    #Тестирование выгрузки настроек в файл
+    def test_dump_to_file(self):
+        #Действие
+        res = self.__start_service.dump("newsettings.json")
+        #Проверка
+        assert res==True

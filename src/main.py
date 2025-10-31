@@ -9,6 +9,7 @@ from Logics.response_md import response_md
 from Core.start_service import start_service
 from Core.repository import repository
 from Models.settings_manager import settings_manager
+from datetime import datetime
 app = connexion.FlaskApp(__name__)
 service=start_service()
 fe = factory_entities()
@@ -77,6 +78,40 @@ def get_receipt(code):
                content_type="text/plain;charset=utf-8")
     return flask.Response(response=instance.build("json",receipt), status=200, 
                content_type="application/json;charset=utf-8")
+
+@app.app.route("/report/<code>/<start>/<end>", methods=['GET'])
+def get_report(code,start,end):
+    rf=fe.create('json')
+    instance = rf()
+    res=service.repository.data[repository.storage_key()]
+    storage=None
+    try:
+        start_date=datetime.strptime(start,"%d-%m-%Y")
+        end_date=datetime.strptime(end,"%d-%m-%Y")
+    except:
+        return flask.Response(response="Неправильный формат дат!", status=400, 
+               content_type="text/plain;charset=utf-8")
+    for i in res:
+        if i.id==code:
+            storage=i
+    if storage is None:
+        return flask.Response(response="Неправильный код склада!", status=400, 
+               content_type="text/plain;charset=utf-8")
+    osv=service.create_osv(start_date,end_date,storage.id)
+    csv=factory_entities().create("csv")
+    return flask.Response(response=csv().build("csv",osv), status=200, 
+               content_type="text/plain;charset=utf-8")
+
+@app.app.route("/dump", methods=['POST'])
+def dump():
+    res=service.dump("newsettings.json")
+    if res:
+        return flask.Response(response="Info saved to file!", status=200, 
+               content_type="text/plain;charset=utf-8")
+    else:
+        return flask.Response(response="Error with saving info!", status=400, 
+               content_type="text/plain;charset=utf-8")
+
 
 if __name__ == '__main__':
     service.start(file=True)
