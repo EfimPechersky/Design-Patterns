@@ -30,9 +30,8 @@ class TestConvertor:
         #Подготовка
         dc=datetime_convertor()
         obj=datetime(2025,12,31)
-        res={'day': 31, 'fold': 0, 'hour': 0, 'microsecond': 0, 'minute': 0, 'month': 12, 'second': 0, 'year': 2025}
         #Проверка
-        assert dc.convert(obj)==res
+        assert dc.convert(obj)=="31-12-2025"
     
     def test_datetime_convertor_wrong_type_error(self):
         #Подготовка

@@ -8,22 +8,32 @@ class repository:
     """Ключ доступа к единицам измерения"""
     @staticmethod
     def range_key():
-        return "range_model"
+        return "ranges"
     
     """Ключ доступа к группам номенклатуры"""
     @staticmethod
     def group_key():
-        return "group_model"
+        return "groups"
     
     """Ключ доступа к номенклатурам"""
     @staticmethod
     def nomenclature_key():
-        return "nomenclature_model"
+        return "nomenclatures"
     
     """Ключ доступа к рецептам"""
     @staticmethod
     def receipt_key():
-        return "receipt_model"
+        return "receipts"
+    
+    """Ключ доступа к складам"""
+    @staticmethod
+    def storage_key():
+        return "storages"
+    
+    """Ключ доступа к транзакциям"""
+    @staticmethod
+    def transaction_key():
+        return "transactions"
     
     @staticmethod
     def keys() -> list:

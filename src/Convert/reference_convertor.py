@@ -6,6 +6,10 @@ from Models.nomenclature_model import nomenclature_model
 from Models.ingridient_model import ingridient_model
 from Models.group_model import nomenclature_group_model
 from Models.receipt_model import receipt_model
+from Models.transaction_model import transaction_model
+from Models.storage_model import storage_model
+from Models.osv_item_model import osv_item_model
+from Models.osv_model import osv_model
 from Core.abstract_dto import abstract_dto
 from Core.common import common
 #Класс для преобразования объекта типа наследуюемого от abstract_model

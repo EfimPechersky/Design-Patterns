@@ -28,7 +28,7 @@ class ingridient_model(abstract_model):
         return self.__range
     
     @range.setter
-    def range(self, value: int):
+    def range(self, value: range_model):
         validator.validate(value, range_model)
         self.__range = value
 
@@ -40,7 +40,7 @@ class ingridient_model(abstract_model):
         return self.__nomenclature
     
     @nomenclature.setter
-    def nomenclature(self, value: int):
+    def nomenclature(self, value: nomenclature_model):
         validator.validate(value, nomenclature_model)
         self.__nomenclature = value
 
