@@ -2,6 +2,7 @@ from Core.repository import repository
 from Models.range_model import range_model
 from Models.group_model import nomenclature_group_model
 from Models.nomenclature_model import nomenclature_model
+from Models.osv_model import osv_model
 from Core.validator import validator, argument_exception, operation_exception
 import os
 import json
@@ -221,30 +222,11 @@ class start_service:
     def create_osv(self, start, end, storage_id):
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
-        osv={}
-        for nomenclature in nomenclatures:
-            range=nomenclature.range_count
-            if not nomenclature.range_count.base_range is None:
-                range=nomenclature.range_count.base_range
-            osv[nomenclature.name]=[0.0,0.0,0.0,0.0,range]
-        for transaction in transactions:
-            if transaction.storage.id==storage_id and transaction.date<=end:
-                num=transaction.num
-                if not transaction.range.base_range is None:
-                    if transaction.range.base_range==osv[transaction.nomenclature.name][4]:
-                        num=num*transaction.range.coeff
-                if transaction.date<=start:
-                    osv[transaction.nomenclature.name][0]+=num
-                if transaction.date>=start:
-                    if transaction.num>0:
-                        osv[transaction.nomenclature.name][1]+=num
-                    else:
-                        osv[transaction.nomenclature.name][2]+=num
-                osv[transaction.nomenclature.name][3]+=num
-        res=[]
-        for i in osv:
-            res+=[{"Номенклатура":i,"Единица измерения":osv[i][4].name,"Начальный остаток":osv[i][0],"Приход":osv[i][1],"Расход":osv[i][2],"Конечный остаток":osv[i][3]}]
-        return res
+        storage=self.__cache[storage_id] if storage_id in self.__cache else None
+        validator.validate(storage, storage_model)
+        osv=osv_model.create(storage,start,end)
+        osv.fill_rows(transactions,nomenclatures)
+        return osv
 
     def dump(self, filename):
         if self.__full_file_name == "":
@@ -257,7 +239,7 @@ class start_service:
                 for i in self.__repo.data[k]:
                     alldata[k]+=[cf.rec_convert(i)]
             with open(filename, 'w', encoding="UTF-8") as file_instance:
-                json.dump(alldata,file_instance,ensure_ascii=False)
+                json.dump(alldata,file_instance,ensure_ascii=False,indent=4)
             return True
         except Exception as e:
             error_message = str(e)

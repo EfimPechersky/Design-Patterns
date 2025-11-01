@@ -99,7 +99,7 @@ def get_report(code,start,end):
                content_type="text/plain;charset=utf-8")
     osv=service.create_osv(start_date,end_date,storage.id)
     csv=factory_entities().create("csv")
-    return flask.Response(response=csv().build("csv",osv), status=200, 
+    return flask.Response(response=csv().build("csv",osv.osv_items), status=200, 
                content_type="text/plain;charset=utf-8")
 
 @app.app.route("/dump", methods=['POST'])

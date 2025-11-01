@@ -102,7 +102,7 @@ class TestStartService:
         #Действие
         osv=self.__start_service.create_osv(start, end, storage_id)
         #Проверка
-        assert len(osv)==len(self.__start_service.data[repository.nomenclature_key()])
+        assert len(osv.osv_items)==len(self.__start_service.data[repository.nomenclature_key()])
 
     #Тестирование выгрузки настроек в файл
     def test_dump_to_file(self):
