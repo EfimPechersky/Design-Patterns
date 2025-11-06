@@ -224,8 +224,8 @@ class start_service:
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
         storage=self.__cache[storage_id] if storage_id in self.__cache else None
         validator.validate(storage, storage_model)
-        osv=osv_model.create(storage,start,end)
-        osv.fill_rows(transactions,nomenclatures)
+        osv=osv_model.create(storage,start,end,nomenclatures)
+        osv.fill_rows(transactions)
         return osv
 
     def dump(self, filename):

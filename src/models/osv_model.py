@@ -13,7 +13,10 @@ class osv_model(abstract_model):
     __start_date:datetime
     __end_date:datetime
     __osv_items=[]
+    __osv_dict={}
     def __init__(self):
+        self.__osv_items=[]
+        self.__osv_dict={}
         super().__init__()
     
 
@@ -62,6 +65,7 @@ class osv_model(abstract_model):
         for i in value:
             validator.validate(i,osv_item_model)
             self.osv_items.append(i)
+            self.__osv_dict[i.nomenclature.id]=len(self.osv_items)-1
     
     def find_item_by_nomenclature(self,nomencalture):
         for item in self.osv_items:
@@ -69,18 +73,11 @@ class osv_model(abstract_model):
                 return item
         raise operation_exception("Строка не найдена!")
     
-    def fill_rows(self, transactions, nomenclatures):
-        osv_items=[]
-        for nomenclature in nomenclatures:
-            range=nomenclature.range_count
-            if not nomenclature.range_count.base_range is None:
-                range=nomenclature.range_count.base_range
-            osv_items+=[osv_item_model.create(nomenclature,range,0.0,0.0,0.0,0.0)]
-        self.osv_items=osv_items
+    def fill_rows(self, transactions):
         for transaction in transactions:
             if transaction.storage.id==self.storage.id and transaction.date<=self.end_date:
                 num=transaction.num
-                item=self.find_item_by_nomenclature(transaction.nomenclature)
+                item=self.osv_items[self.__osv_dict[transaction.nomenclature.id]]
                 if not transaction.range.base_range is None:
                     if transaction.range.base_range==item.range:
                         num=num*transaction.range.coeff
@@ -96,12 +93,18 @@ class osv_model(abstract_model):
     Универсальный метод - фабричный
     """
     @staticmethod
-    def create(storage, start_date, end_date):
+    def create(storage, start_date, end_date, nomenclatures):
         item = osv_model()
         item.storage=storage
         item.start_date = start_date
         item.end_date = end_date
-        item.osv_items=[]
+        osv_items=[]
+        for nomenclature in nomenclatures:
+            range=nomenclature.range_count
+            if not nomenclature.range_count.base_range is None:
+                range=nomenclature.range_count.base_range
+            osv_items+=[osv_item_model.create(nomenclature,range,0.0,0.0,0.0,0.0)]
+        item.osv_items=osv_items
         return item
 
     """
