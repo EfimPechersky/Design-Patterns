@@ -1,0 +1,17 @@
+{
+    "start_date":{
+        "field_name":"date",
+        "value":"10-10-2025",
+        "condition":"MORE"
+    },
+    "end_date":{
+        "field_name":"date",
+        "value":"01-11-2025",
+        "condition":"MORE"
+    },
+    "storage":{
+        "field_name":"storage.id",
+        "value":"ndet5a2x-6f2a-nv5z-f561-md7vb421",
+        "condition":"EQUALS"
+    }
+}

@@ -6,6 +6,9 @@ from Models.osv_item_model import osv_item_model
 from Models.transaction_model import transaction_model
 from Core.validator import validator, argument_exception, operation_exception
 from Dto.osv_dto import osv_dto,osv_item_dto
+from Logics.prototype_report import prototype_report
+from Logics.prototype import prototype
+from Dto.filter_dto import filter_dto
 from datetime import datetime
 # Модель ОСВ
 class osv_model(abstract_model):
@@ -16,7 +19,6 @@ class osv_model(abstract_model):
     __osv_dict={}
     def __init__(self):
         self.__osv_items=[]
-        self.__osv_dict={}
         super().__init__()
     
 
@@ -65,30 +67,80 @@ class osv_model(abstract_model):
         for i in value:
             validator.validate(i,osv_item_model)
             self.osv_items.append(i)
-            self.__osv_dict[i.nomenclature.id]=len(self.osv_items)-1
     
-    def find_item_by_nomenclature(self,nomencalture):
-        for item in self.osv_items:
-            if item.nomenclature == nomencalture:
-                return item
-        raise operation_exception("Строка не найдена!")
-    
+    """
+    Заполнение ОСВ
+    """
     def fill_rows(self, transactions):
-        for transaction in transactions:
-            if transaction.storage.id==self.storage.id and transaction.date<=self.end_date:
+        dto=filter_dto()
+        dto.field_name="storage.id"
+        dto.value=self.storage.id
+        dto.condition="EQUALS"
+        new_prototype=prototype_report(transactions)
+        new_prototype=prototype_report.filter(new_prototype,dto)
+        dto.field_name="date"
+        dto.value=self.end_date
+        dto.condition="MORE"
+        end_prototype=prototype_report.filter(new_prototype,dto)
+        for item in self.osv_items:
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=prototype_report.filter(end_prototype,dto)
+            for transaction in nom_prototype.data:
                 num=transaction.num
-                item=self.osv_items[self.__osv_dict[transaction.nomenclature.id]]
                 if not transaction.range.base_range is None:
                     if transaction.range.base_range==item.range:
                         num=num*transaction.range.coeff
-                if transaction.date<=self.start_date:
+                if transaction.date<self.start_date:
                     item.start_num+=num
-                if transaction.date>=self.start_date:
-                    if transaction.num>0:
+                else:
+                    if num>0:
                         item.addition+=num
                     else:
                         item.substraction+=num
+                
                 item.end_num+=num
+    """
+    Создание ОСВ при помощи фильтров
+    """
+    @staticmethod
+    def filters_osv(filters:dict, transactions, nomenclatures):
+        osv=osv_model()
+        osv.fill_empty_osv(nomenclatures)
+        new_prototype=prototype_report(transactions)
+        new_prototype=prototype_report.filter(new_prototype,filters["storage"])
+        end_prototype=prototype_report.filter(new_prototype,filters["end_date"])
+        start_prototype=prototype_report.filter(new_prototype,filters["start_date"])
+        dto=filter_dto()
+        for item in osv.osv_items:
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=prototype_report.filter(start_prototype,dto)
+            for transaction in nom_prototype.data:
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==item.range:
+                        num=num*transaction.range.coeff
+                item.start_num+=num
+        for item in osv.osv_items:
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=prototype_report.filter(end_prototype,dto)
+            for transaction in nom_prototype.data:
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==item.range:
+                        num=num*transaction.range.coeff
+                if num>0:
+                    item.addition+=num
+                else:
+                    item.substraction+=num
+                item.end_num+=num
+        return osv
+    
     """
     Универсальный метод - фабричный
     """
@@ -98,15 +150,17 @@ class osv_model(abstract_model):
         item.storage=storage
         item.start_date = start_date
         item.end_date = end_date
+        item.fill_empty_osv(nomenclatures)
+        return item
+
+    def fill_empty_osv(self,nomenclatures):
         osv_items=[]
         for nomenclature in nomenclatures:
             range=nomenclature.range_count
             if not nomenclature.range_count.base_range is None:
                 range=nomenclature.range_count.base_range
             osv_items+=[osv_item_model.create(nomenclature,range,0.0,0.0,0.0,0.0)]
-        item.osv_items=osv_items
-        return item
-
+        self.osv_items=osv_items
     """
     Фабричный метод в Dto
     """

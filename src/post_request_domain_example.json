@@ -1,0 +1,14 @@
+{
+    "filters":[
+        {
+            "field_name":"range_count.name",
+            "value":"грамм",
+            "condition":"LIKE"
+        },
+        {
+            "field_name":"group.name",
+            "value":"Продукты",
+            "condition":"LIKE"
+        }
+    ]
+}
