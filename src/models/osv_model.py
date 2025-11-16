@@ -113,20 +113,21 @@ class osv_model(abstract_model):
         storage_filter=None
         for filter in filters:
             if "date" in filter.field_name:
-                if start_date_filter is None:
-                    start_date_filter=filter
-                elif start_date_filter.value>filter.value:
-                    start_date_filter=filter
                 if end_date_filter is None:
                     end_date_filter=filter
                 elif end_date_filter.value<filter.value:
                     end_date_filter=filter
+                if start_date_filter is None:
+                    if not end_date_filter is filter:
+                        start_date_filter=filter
+                elif start_date_filter.value>filter.value:
+                    start_date_filter=filter
             if "storage.id" == filter.field_name:
                 storage_filter=filter
         new_prototype=prototype_report(transactions)
         storage_prototype=new_prototype.filter(storage_filter) if not storage_filter is None else new_prototype
-        start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else storage_prototype
-        end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_prototype
+        start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else prototype_report([])
+        end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_filter
         dto=filter_dto()
         for item in osv.osv_items:
             dto.field_name="nomenclature.name"
@@ -145,6 +146,8 @@ class osv_model(abstract_model):
             dto.condition="EQUALS"
             nom_prototype=end_prototype.filter(dto)
             for transaction in nom_prototype.data:
+                if transaction in start_prototype.data:
+                    continue
                 num=transaction.num
                 if not transaction.range.base_range is None:
                     if transaction.range.base_range==item.range:
