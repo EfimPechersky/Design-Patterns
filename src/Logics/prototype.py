@@ -51,13 +51,14 @@ class prototype(ABC):
     """
     Фильтрация значений
     """
-    @staticmethod
-    def filter(data:list, filter:filter_dto)->list:
+    #@staticmethod
+    def filter(prot:"prototype", filter:filter_dto)->list:
+        data=prot.data
         if len(data)==0:
-            return data
+            return prot.clone(data)
         result=[]
         for item in data:
             value=prototype.get_value_from_field(item, filter.field_name)
             if filter.get_condition_function(filter.condition)(filter.value,value):
                 result.append(item)
-        return result
+        return prot.clone(result)

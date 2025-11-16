@@ -21,10 +21,10 @@ class prototype_report(prototype):
     """
     Фильтрация объектов
     """
-    @staticmethod
+    #@staticmethod
     def filter(report:prototype,filter:filter_dto)->prototype:
         validator.validate(report, prototype)
-        result=prototype.filter(report.data, filter)
-        return report.clone(result)
+        result=prototype.filter(report, filter)
+        return result
     
     

@@ -105,19 +105,34 @@ class osv_model(abstract_model):
     Создание ОСВ при помощи фильтров
     """
     @staticmethod
-    def filters_osv(filters:dict, transactions, nomenclatures):
+    def filters_osv(filters:list, transactions, nomenclatures):
         osv=osv_model()
         osv.fill_empty_osv(nomenclatures)
+        start_date_filter=None
+        end_date_filter=None
+        storage_filter=None
+        for filter in filters:
+            if "date" in filter.field_name:
+                if start_date_filter is None:
+                    start_date_filter=filter
+                elif start_date_filter.value>filter.value:
+                    start_date_filter=filter
+                if end_date_filter is None:
+                    end_date_filter=filter
+                elif end_date_filter.value<filter.value:
+                    end_date_filter=filter
+            if "storage.id" == filter.field_name:
+                storage_filter=filter
         new_prototype=prototype_report(transactions)
-        new_prototype=prototype_report.filter(new_prototype,filters["storage"])
-        end_prototype=prototype_report.filter(new_prototype,filters["end_date"])
-        start_prototype=prototype_report.filter(new_prototype,filters["start_date"])
+        storage_prototype=new_prototype.filter(storage_filter) if not storage_filter is None else new_prototype
+        start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else storage_prototype
+        end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_prototype
         dto=filter_dto()
         for item in osv.osv_items:
             dto.field_name="nomenclature.name"
             dto.value=item.nomenclature.name
             dto.condition="EQUALS"
-            nom_prototype=prototype_report.filter(start_prototype,dto)
+            nom_prototype=start_prototype.filter(dto)
             for transaction in nom_prototype.data:
                 num=transaction.num
                 if not transaction.range.base_range is None:
@@ -128,7 +143,7 @@ class osv_model(abstract_model):
             dto.field_name="nomenclature.name"
             dto.value=item.nomenclature.name
             dto.condition="EQUALS"
-            nom_prototype=prototype_report.filter(end_prototype,dto)
+            nom_prototype=end_prototype.filter(dto)
             for transaction in nom_prototype.data:
                 num=transaction.num
                 if not transaction.range.base_range is None:

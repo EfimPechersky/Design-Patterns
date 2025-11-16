@@ -237,8 +237,6 @@ class start_service:
     def create_osv_with_filters(self, filters):
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
-        if not ("storage" in filters and "start_date" in filters and "end_date" in filters and len(filters)==3):
-            raise argument_exception("Неверные фильтры!")
         osv=osv_model.filters_osv(filters, transactions, nomenclatures)
         return osv
 

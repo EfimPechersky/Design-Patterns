@@ -53,13 +53,13 @@ def handle_post_data(type, format):
                               content_type="text/plain;charset=utf-8")
 
     dtos=[]
-    for i in filters:
+    for filter in filters:
         dto=filter_dto()
-        dto.field_name=i["field_name"]
-        dto.value=i["value"]
+        dto.field_name=filter["field_name"]
+        dto.value=filter["value"]
         if dto.value.isdigit():
             dto.value=float(dto.value)
-        dto.condition=i["condition"]
+        dto.condition=filter["condition"]
         dtos.append(dto)
     
     rf=fe.create(format)
@@ -74,8 +74,8 @@ def handle_post_data(type, format):
         "md":"text/plain"}
     data = service.repository.data[type]
     prot = prototype_report(data)
-    for i in dtos:
-        prot=prototype_report.filter(prot, i)
+    for filter in dtos:
+        prot=prot.filter(filter)
     
     return flask.Response(response=instance.build(format,prot.data), status=200, 
                content_type=ct[format]+";charset=utf-8")
@@ -87,17 +87,20 @@ def get_filtered_report():
         return flask.Response(response="Отсутствует JSON!", status=400, 
                               content_type="text/plain;charset=utf-8")
     
-
-    dtos={}
-    for i in data:
+    filters=data["filters"] if "filters" in data else None
+    if filters is None:
+        return flask.Response(response="Отсутствуют фильтры!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    dtos=[]
+    for filter in filters:
         dto=filter_dto()
-        dto.field_name=data[i]["field_name"]
+        dto.field_name=filter["field_name"]
         if "date" in dto.field_name:
-            dto.value=datetime.strptime(data[i]["value"],"%d-%m-%Y")
+            dto.value=datetime.strptime(filter["value"],"%d-%m-%Y")
         else:
-            dto.value=data[i]["value"]
-        dto.condition=data[i]["condition"]
-        dtos[i]=dto
+            dto.value=filter["value"]
+        dto.condition=filter["condition"]
+        dtos+=[dto]
     
     osv=service.create_osv_with_filters(dtos)
     csv=factory_entities().create("csv")

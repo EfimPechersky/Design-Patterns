@@ -49,4 +49,24 @@ class TestPrototype:
         #Проверка
         assert len(test_nom_prototype.data)==2
         assert len(test_add_prototype.data)==1
+    
+    #Тестирование фильтрации при помощи вызова функции у объекта прототипа
+    def test_prototype_chain(self):
+        start_prototype=prototype_report(self.start.data[repository.transaction_key()])
+        print(self.start.data)
+        find_nomenclature = self.start.data[repository.nomenclature_key()][0]
+        dto=filter_dto()
+        dto.field_name="nomenclature.name"
+        dto.condition="EQUALS"
+        dto.value=find_nomenclature.name
+        #Действие
+        test_nom_prototype = start_prototype.filter(dto)
+        dto.field_name="num"
+        dto.condition="LESS"
+        dto.value=0
+        test_add_prototype=test_nom_prototype.filter(dto)
+        #Проверка
+        assert len(test_nom_prototype.data)==2
+        assert len(test_add_prototype.data)==1
+
 
