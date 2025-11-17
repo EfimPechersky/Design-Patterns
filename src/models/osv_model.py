@@ -6,6 +6,9 @@ from Models.osv_item_model import osv_item_model
 from Models.transaction_model import transaction_model
 from Core.validator import validator, argument_exception, operation_exception
 from Dto.osv_dto import osv_dto,osv_item_dto
+from Logics.prototype_report import prototype_report
+from Logics.prototype import prototype
+from Dto.filter_dto import filter_dto
 from datetime import datetime
 # Модель ОСВ
 class osv_model(abstract_model):
@@ -13,7 +16,9 @@ class osv_model(abstract_model):
     __start_date:datetime
     __end_date:datetime
     __osv_items=[]
+    __osv_dict={}
     def __init__(self):
+        self.__osv_items=[]
         super().__init__()
     
 
@@ -63,13 +68,110 @@ class osv_model(abstract_model):
             validator.validate(i,osv_item_model)
             self.osv_items.append(i)
     
-    def find_item_by_nomenclature(self,nomencalture):
+    """
+    Заполнение ОСВ
+    """
+    def fill_rows(self, transactions):
+        dto=filter_dto()
+        dto.field_name="storage.id"
+        dto.value=self.storage.id
+        dto.condition="EQUALS"
+        new_prototype=prototype_report(transactions)
+        new_prototype=prototype_report.filter(new_prototype,dto)
+        dto.field_name="date"
+        dto.value=self.end_date
+        dto.condition="MORE"
+        end_prototype=prototype_report.filter(new_prototype,dto)
         for item in self.osv_items:
-            if item.nomenclature == nomencalture:
-                return item
-        raise operation_exception("Строка не найдена!")
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=prototype_report.filter(end_prototype,dto)
+            for transaction in nom_prototype.data:
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==item.range:
+                        num=num*transaction.range.coeff
+                if transaction.date<self.start_date:
+                    item.start_num+=num
+                else:
+                    if num>0:
+                        item.addition+=num
+                    else:
+                        item.substraction+=num
+                
+                item.end_num+=num
+    """
+    Создание ОСВ при помощи фильтров
+    """
+    @staticmethod
+    def filters_osv(filters:list, transactions, nomenclatures):
+        osv=osv_model()
+        osv.fill_empty_osv(nomenclatures)
+        start_date_filter=None
+        end_date_filter=None
+        storage_filter=None
+        for filter in filters:
+            if "date" in filter.field_name:
+                if end_date_filter is None:
+                    end_date_filter=filter
+                elif end_date_filter.value<filter.value:
+                    end_date_filter=filter
+                if start_date_filter is None:
+                    if not end_date_filter is filter:
+                        start_date_filter=filter
+                elif start_date_filter.value>filter.value:
+                    start_date_filter=filter
+            if "storage.id" == filter.field_name:
+                storage_filter=filter
+        new_prototype=prototype_report(transactions)
+        storage_prototype=new_prototype.filter(storage_filter) if not storage_filter is None else new_prototype
+        start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else prototype_report([])
+        end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_filter
+        dto=filter_dto()
+        for item in osv.osv_items:
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=start_prototype.filter(dto)
+            for transaction in nom_prototype.data:
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==item.range:
+                        num=num*transaction.range.coeff
+                item.start_num+=num
+        for item in osv.osv_items:
+            dto.field_name="nomenclature.name"
+            dto.value=item.nomenclature.name
+            dto.condition="EQUALS"
+            nom_prototype=end_prototype.filter(dto)
+            for transaction in nom_prototype.data:
+                if transaction in start_prototype.data:
+                    continue
+                num=transaction.num
+                if not transaction.range.base_range is None:
+                    if transaction.range.base_range==item.range:
+                        num=num*transaction.range.coeff
+                if num>0:
+                    item.addition+=num
+                else:
+                    item.substraction+=num
+                item.end_num+=num
+        return osv
     
-    def fill_rows(self, transactions, nomenclatures):
+    """
+    Универсальный метод - фабричный
+    """
+    @staticmethod
+    def create(storage, start_date, end_date, nomenclatures):
+        item = osv_model()
+        item.storage=storage
+        item.start_date = start_date
+        item.end_date = end_date
+        item.fill_empty_osv(nomenclatures)
+        return item
+
+    def fill_empty_osv(self,nomenclatures):
         osv_items=[]
         for nomenclature in nomenclatures:
             range=nomenclature.range_count
@@ -77,33 +179,6 @@ class osv_model(abstract_model):
                 range=nomenclature.range_count.base_range
             osv_items+=[osv_item_model.create(nomenclature,range,0.0,0.0,0.0,0.0)]
         self.osv_items=osv_items
-        for transaction in transactions:
-            if transaction.storage.id==self.storage.id and transaction.date<=self.end_date:
-                num=transaction.num
-                item=self.find_item_by_nomenclature(transaction.nomenclature)
-                if not transaction.range.base_range is None:
-                    if transaction.range.base_range==item.range:
-                        num=num*transaction.range.coeff
-                if transaction.date<=self.start_date:
-                    item.start_num+=num
-                if transaction.date>=self.start_date:
-                    if transaction.num>0:
-                        item.addition+=num
-                    else:
-                        item.substraction+=num
-                item.end_num+=num
-    """
-    Универсальный метод - фабричный
-    """
-    @staticmethod
-    def create(storage, start_date, end_date):
-        item = osv_model()
-        item.storage=storage
-        item.start_date = start_date
-        item.end_date = end_date
-        item.osv_items=[]
-        return item
-
     """
     Фабричный метод в Dto
     """

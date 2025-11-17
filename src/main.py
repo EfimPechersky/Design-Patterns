@@ -9,6 +9,8 @@ from Logics.response_md import response_md
 from Core.start_service import start_service
 from Core.repository import repository
 from Models.settings_manager import settings_manager
+from Dto.filter_dto import filter_dto
+from Logics.prototype_report import prototype_report
 from datetime import datetime
 app = connexion.FlaskApp(__name__)
 service=start_service()
@@ -37,6 +39,73 @@ def show_info(type, format):
     return flask.Response(response=instance.build(format,service.repository.data[type]), status=200, 
                content_type=ct[format]+";charset=utf-8")
 
+@app.route("/info/<type>/<format>", methods=['POST'])
+def handle_post_data(type, format):
+    data = request.get_json()
+
+    if data is None:
+        return flask.Response(response="Отсутствует JSON!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    
+    filters=data["filters"] if "filters" in data else None
+    if filters is None:
+        return flask.Response(response="Отсутствуют фильтры!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+
+    dtos=[]
+    for filter in filters:
+        dto=filter_dto()
+        dto.field_name=filter["field_name"]
+        dto.value=filter["value"]
+        if dto.value.isdigit():
+            dto.value=float(dto.value)
+        dto.condition=filter["condition"]
+        dtos.append(dto)
+    
+    rf=fe.create(format)
+    instance = rf()
+    if not type in service.repository.data:
+        return flask.Response(response="Неправильный тип "+type, status=400, 
+               content_type="text/plain;charset=utf-8")
+    
+    ct={"json":"application/json",
+        "xml":"text/xml",
+        "csv":"text/plain",
+        "md":"text/plain"}
+    data = service.repository.data[type]
+    prot = prototype_report(data)
+    for filter in dtos:
+        prot=prot.filter(filter)
+    
+    return flask.Response(response=instance.build(format,prot.data), status=200, 
+               content_type=ct[format]+";charset=utf-8")
+
+@app.app.route("/report", methods=['POST'])
+def get_filtered_report():
+    data = request.get_json()
+    if data is None:
+        return flask.Response(response="Отсутствует JSON!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    
+    filters=data["filters"] if "filters" in data else None
+    if filters is None:
+        return flask.Response(response="Отсутствуют фильтры!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    dtos=[]
+    for filter in filters:
+        dto=filter_dto()
+        dto.field_name=filter["field_name"]
+        if "date" in dto.field_name:
+            dto.value=datetime.strptime(filter["value"],"%d-%m-%Y")
+        else:
+            dto.value=filter["value"]
+        dto.condition=filter["condition"]
+        dtos+=[dto]
+    
+    osv=service.create_osv_with_filters(dtos)
+    csv=factory_entities().create("csv")
+    return flask.Response(response=csv().build("csv",osv.osv_items), status=200, 
+               content_type="text/plain;charset=utf-8")
 @app.app.route("/default/<type>", methods=['GET'])
 def default_info(type):
     sm=settings_manager()

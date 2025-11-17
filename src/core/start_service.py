@@ -31,6 +31,7 @@ class start_service:
     __full_file_name:str = ""
 
     def __init__(self):
+        self.__cache = {}
         self.__repo.initalize()
 
     # Singletone
@@ -97,7 +98,7 @@ class start_service:
     # Загрузить единицы измерений   
     def __convert_ranges(self, data: dict) -> bool:
         validator.validate(data, dict)
-        ranges = data['ranges'] if 'ranges' in data else []    
+        ranges = data['ranges'] if 'ranges' in data else []
         if len(ranges) == 0:
             return False
          
@@ -218,16 +219,30 @@ class start_service:
         self.__repo.data[repository.receipt_key()].append(receipt_model.create_waffles_receipt(self.__repo))
         self.__repo.data[repository.receipt_key()].append(receipt_model.create_pie_receipt(self.__repo))
     
-        
+    """
+    Создание ОСВ
+    """
     def create_osv(self, start, end, storage_id):
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
         storage=self.__cache[storage_id] if storage_id in self.__cache else None
         validator.validate(storage, storage_model)
-        osv=osv_model.create(storage,start,end)
-        osv.fill_rows(transactions,nomenclatures)
+        osv=osv_model.create(storage,start,end,nomenclatures)
+        osv.fill_rows(transactions)
         return osv
 
+    """
+    Создание ОСВ при помощи фильтров
+    """
+    def create_osv_with_filters(self, filters):
+        transactions=self.__repo.data[repository.transaction_key()]
+        nomenclatures = self.__repo.data[repository.nomenclature_key()]
+        osv=osv_model.filters_osv(filters, transactions, nomenclatures)
+        return osv
+
+    """
+    Выгрузка данных
+    """
     def dump(self, filename):
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")

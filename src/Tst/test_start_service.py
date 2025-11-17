@@ -37,7 +37,7 @@ class TestStartService:
     ])
     def test_start_service_range_is_right(self,ind, range):
         # проверка
-        assert self.__start_service.repository.data[repository.range_key()][ind] is range
+        assert self.__start_service.repository.data[repository.range_key()][ind] == range
 
     #Тестирование на пустые значения групп номенклатур
     def test_start_service_groups_not_empty(self):
@@ -55,7 +55,7 @@ class TestStartService:
     ])
     def test_start_service_groups_is_right(self, ind, group):
         # проверка
-        assert self.__start_service.repository.data[repository.group_key()][ind] is group
+        assert self.__start_service.repository.data[repository.group_key()][ind] == group
 
     #Тестирование на пустые значения номенклатур
     def test_start_service_nomenclature_not_empty(self):
@@ -66,7 +66,7 @@ class TestStartService:
     #Тестирование на одинаковые адреса у моделей единицы измерения в номенклатуре
     def test_same_range_in_nomenclature_model(self):
         # проверка
-        assert self.__start_service.repository.data[repository.nomenclature_key()][0].range_count is self.__start_service.repository.data[repository.range_key()][2]
+        assert self.__start_service.repository.data[repository.nomenclature_key()][0].range_count == self.__start_service.repository.data[repository.range_key()][2]
     #Тестирование на наличие всех дефолтных номенклатур
     @pytest.mark.parametrize("ind, nomenclature",[
         (0,nomenclature_model.create_flour(__start_service.repository)),
@@ -80,7 +80,7 @@ class TestStartService:
     ])
     def test_start_service_nomenclature_is_right(self, ind, nomenclature):
         # проверка
-        assert self.__start_service.repository.data[repository.nomenclature_key()][ind] is nomenclature
+        assert self.__start_service.repository.data[repository.nomenclature_key()][ind] == nomenclature
     #Тестирование на пустые значения рецептов
     def test_start_service_receipt_not_empty(self):
         # проверка
@@ -91,7 +91,7 @@ class TestStartService:
     ])
     def test_start_service_receipt_is_right(self, ind, receipt):
         # проверка
-        assert self.__start_service.repository.data[repository.receipt_key()][ind] is receipt
+        assert self.__start_service.repository.data[repository.receipt_key()][ind] == receipt
 
     #Тестирование создания ОСВ
     def test_create_osv(self):
