@@ -12,6 +12,7 @@ from Models.settings_manager import settings_manager
 from Dto.filter_dto import filter_dto
 from Logics.prototype_report import prototype_report
 from datetime import datetime
+from Convert.datetime_convertor import datetime_convertor
 app = connexion.FlaskApp(__name__)
 service=start_service()
 fe = factory_entities()
@@ -106,11 +107,24 @@ def get_filtered_report():
     csv=factory_entities().create("csv")
     return flask.Response(response=csv().build("csv",osv.osv_items), status=200, 
                content_type="text/plain;charset=utf-8")
+
+@app.app.route("/block_period", methods=['POST'])
+def set_block_period():
+    data = request.get_json()
+    if data is None:
+        return flask.Response(response="Отсутствует JSON!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    
+    block_period=data["block_period"] if "block_period" in data else None
+    if block_period is None:
+        return flask.Response(response="Отсутствует дата блокировки!", status=400, 
+                              content_type="text/plain;charset=utf-8")
+    service.block_period=datetime.strptime(block_period,"%d-%m-%Y")
+    return flask.Response(response="Дата блокировки успешно обновлена!", status=200, 
+               content_type="text/plain;charset=utf-8")
+
 @app.app.route("/default/<type>", methods=['GET'])
 def default_info(type):
-    sm=settings_manager()
-    sm.file_name=".\settings.json"
-    sm.load()
     rf=fe.create_default(sm.settings())
     instance = rf()
     if not type in service.repository.data:
@@ -181,7 +195,27 @@ def dump():
         return flask.Response(response="Error with saving info!", status=400, 
                content_type="text/plain;charset=utf-8")
 
+@app.app.route("/stocks", methods=['GET'])
+def get_stocks():
+    res=service.repository.data[repository.stock_key()]
+    csv=factory_entities().create("csv")
+    return flask.Response(response=csv().build("csv",res), status=200, 
+               content_type="text/plain;charset=utf-8")
+
+@app.app.route("/block_period", methods=['GET'])
+def get_block_period():
+    block=service.block_period
+    if block==None:
+        res="Дата блокировки отсутствует"
+    else:
+        res=f"Дата блокировки равна {datetime_convertor.convert(block)}"
+    return flask.Response(response=res, status=200, 
+               content_type="text/plain;charset=utf-8")
 
 if __name__ == '__main__':
     service.start(file=True)
+    sm=settings_manager()
+    sm.file_name=".\settings.json"
+    sm.load()
+    service.block_period=sm.settings().block_period
     app.run(host="0.0.0.0", port = 8000)

@@ -15,7 +15,6 @@ from datetime import datetime
 class TestStartService:
     __start_service = start_service()
     __start_service.start(file=True)
-
         
     #Тестирование на пустые значения единиц измерения
     def test_start_service_range_not_empty(self):
@@ -110,3 +109,32 @@ class TestStartService:
         res = self.__start_service.dump("newsettings.json")
         #Проверка
         assert res==True
+    
+
+    #Тестирование создания ОСВ
+    def test_block_period(self):
+        #Подготовка
+        self.__start_service.block_period=datetime.strptime("01-11-2025", "%d-%m-%Y")
+        #Проверка
+        print(self.__start_service.data[repository.stock_key()])
+        assert len(self.__start_service.data[repository.stock_key()])==len(self.__start_service.data[repository.nomenclature_key()])
+        self.__start_service.block_period=datetime.strptime("01-01-2024", "%d-%m-%Y")
+
+    
+    #Тестирование даты блокировки
+    def test_block_period_same_osv(self):
+        #Подготовка
+        self.__start_service.block_period=datetime.strptime("01-12-2024", "%d-%m-%Y")
+        start=datetime.strptime("10-10-2025", "%d-%m-%Y")
+        end=datetime.strptime("01-11-2025", "%d-%m-%Y")
+        storage_id=self.__start_service.data[repository.storage_key()][0].id
+        #Действие
+        osv1=self.__start_service.create_osv(start, end, storage_id)
+        csv1=response_csv().build("csv",osv1.osv_items)
+        self.__start_service.block_period=datetime.strptime("01-01-2024", "%d-%m-%Y")
+        osv2=self.__start_service.create_osv(start, end, storage_id)
+        csv2=response_csv().build("csv",osv2.osv_items)
+        #Проверка
+        assert csv1==csv2
+
+        

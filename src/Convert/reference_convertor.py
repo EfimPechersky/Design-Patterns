@@ -11,6 +11,7 @@ from Models.storage_model import storage_model
 from Models.osv_item_model import osv_item_model
 from Models.osv_model import osv_model
 from Core.abstract_dto import abstract_dto
+from Models.stock_model import stock_model
 from Core.common import common
 #Класс для преобразования объекта типа наследуюемого от abstract_model
 class reference_convertor(abstract_convertor):

@@ -30,6 +30,11 @@ class repository:
     def storage_key():
         return "storages"
     
+    """Ключ доступа к остаткам номенклатуры"""
+    @staticmethod
+    def stock_key():
+        return "stocks"
+    
     """Ключ доступа к транзакциям"""
     @staticmethod
     def transaction_key():

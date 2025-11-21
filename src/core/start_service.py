@@ -15,13 +15,16 @@ from Dto.group_dto import group_dto
 from Dto.receipt_dto import receipt_dto
 from Dto.storage_dto import storage_dto
 from Dto.transaction_dto import transaction_dto
+from Dto.filter_dto import filter_dto
 from Convert.convert_factory import convert_factory
+from datetime import datetime
+from Models.stock_model import stock_model
+from Logics.prototype_report import prototype_report
 class start_service:
     # Репозиторий
-    __repo: repository = repository()
 
-    # Рецепт по умолчанию
-    __default_receipts: list
+    #Дата блокировки
+    __block_period:datetime = None
 
     # Словарь который содержит загруженные и инициализованные инстансы нужных объектов
     # Ключ - id записи, значение - abstract_model
@@ -32,13 +35,9 @@ class start_service:
 
     def __init__(self):
         self.__cache = {}
+        self.__repo: repository = repository()
         self.__repo.initalize()
-
-    # Singletone
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(start_service, cls).__new__(cls)
-        return cls.instance 
+        
 
     # Текущий файл
     @property
@@ -183,8 +182,54 @@ class start_service:
     def repository(self):
         return self.__repo
     
-
+    """
+    Стартовый набор данных
+    """
+    @property
+    def block_period(self):
+        return self.__block_period   
     
+    @block_period.setter
+    def block_period(self, value):
+        validator.validate(value, datetime)
+        self.__block_period=value
+        self.create_stocks()
+    
+
+    def create_stocks(self):
+        self.__repo.data[repository.stock_key()].clear()
+        prot=prototype_report(self.__repo.data[repository.transaction_key()])
+        dto=filter_dto()
+        dto.field_name="date"
+        dto.value=self.block_period
+        dto.condition="MORE"
+        date_prot=prot.filter(dto)
+        dto.field_name="date"
+        dto.value=datetime.strptime("01-01-1990", "%d-%m-%Y")
+        dto.condition="LESS"
+        date_prot=date_prot.filter(dto)
+        for storage in self.__repo.data[repository.storage_key()]:
+            dto.field_name="storage.id"
+            dto.value=storage.id
+            dto.condition="EQUALS"
+            stor_prot=date_prot.filter(dto)
+            for nomenclature in self.__repo.data[repository.nomenclature_key()]:
+                dto.field_name="nomenclature.id"
+                dto.value=nomenclature.id
+                dto.condition="EQUALS"
+                nom_prot=stor_prot.filter(dto)
+                range=nomenclature.range_count
+                if not range.base_range is None:
+                    range=range.base_range
+                stock=stock_model.create(nomenclature, range, storage, 0.0)
+                for transaction in nom_prot.data:
+                    num=transaction.num
+                    if transaction.range!=range:
+                        num*=transaction.range.coeff
+                    stock.num=stock.num+num
+                self.__repo.data[repository.stock_key()].append(stock)
+            
+
     """Запись дефолтных значений единицы измерения"""
     def default_create_range(self):
         self.__repo.data[repository.range_key()].append(range_model.create_gramm(self.__repo))
@@ -223,12 +268,18 @@ class start_service:
     Создание ОСВ
     """
     def create_osv(self, start, end, storage_id):
+        if start>end:
+            raise argument_exception("Начальная дата ОСВ позже конечной даты")
+        if self.__block_period!=None:
+            if start<self.__block_period:
+                raise argument_exception("Начальная дата ОСВ меньше даты блокировки")
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
+        stocks = self.__repo.data[repository.stock_key()]
         storage=self.__cache[storage_id] if storage_id in self.__cache else None
         validator.validate(storage, storage_model)
         osv=osv_model.create(storage,start,end,nomenclatures)
-        osv.fill_rows(transactions)
+        osv.fill_rows(transactions,self.__block_period,stocks)
         return osv
 
     """
@@ -237,7 +288,8 @@ class start_service:
     def create_osv_with_filters(self, filters):
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]
-        osv=osv_model.filters_osv(filters, transactions, nomenclatures)
+        stocks=self.__repo.data[repository.stock_key()]
+        osv=osv_model.filters_osv(filters, transactions, nomenclatures, self.block_period, stocks)
         return osv
 
     """
@@ -263,6 +315,9 @@ class start_service:
     Основной метод для генерации эталонных данных
     """
     def start(self, file=False):
+        self.__cache = {}
+        self.__repo: repository = repository()
+        self.__repo.initalize()
         if file:
             self.file_name = "./settings.json"
             result = self.load()
