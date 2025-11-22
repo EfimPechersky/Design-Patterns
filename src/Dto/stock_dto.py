@@ -25,7 +25,7 @@ class stock_dto(abstract_dto):
     
     #остаток
     @property
-    def num(self) -> str:
+    def num(self) -> float:
         return self.__num
 
     @num.setter

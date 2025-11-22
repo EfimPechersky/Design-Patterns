@@ -72,16 +72,18 @@ class osv_model(abstract_model):
     """
     def fill_rows(self, transactions, block_period=None,stocks=[]):
         dto=filter_dto()
+        #Фильтруем транзакции после даты блокировки
         prot=prototype_report(transactions)
         dto.field_name="date"
         dto.value=block_period
         dto.condition="LESS"
-        new_prototype=prot.filter(dto) if not block_period is None else prot
+        after_block_date_prototype=prot.filter(dto) if not block_period is None else prot
         stocks_prot=prototype_report(stocks)
         dto.field_name="storage.id"
         dto.value=self.storage.id
         dto.condition="EQUALS"
-        storage_prototype=prototype_report.filter(new_prototype,dto)
+        #Фильтруем транзакции и остатки по складу
+        storage_prototype=prototype_report.filter(after_block_date_prototype,dto)
         stocks_storage_prot=stocks_prot.filter(dto)
         dto.field_name="date"
         dto.value=self.end_date
@@ -91,8 +93,10 @@ class osv_model(abstract_model):
             dto.field_name="nomenclature.name"
             dto.value=item.nomenclature.name
             dto.condition="EQUALS"
+            #Фильтруем транзакции и остатки по номенклатуре
             nom_prototype=prototype_report.filter(end_prototype,dto)
             stocks_nom_prot=stocks_storage_prot.filter(dto)
+            #Учет остатков
             if len(stocks_nom_prot.data)==1:
                 item.start_num=stocks_nom_prot.data[0].num
                 item.end_num=stocks_nom_prot.data[0].num
@@ -138,10 +142,12 @@ class osv_model(abstract_model):
         dto.field_name="date"
         dto.value=block_period
         dto.condition="LESS"
+        #Фильтрация остатков по складу
         stocks_prot=prototype_report(stocks)
         stocks_storage_prot = stocks_prot.filter(storage_filter)
-        new_prototype=prot.filter(dto) if not block_period is None else prot
-        storage_prototype=new_prototype.filter(storage_filter) if not storage_filter is None else new_prototype
+        #Фильтруем транзакции после даты блокировки
+        after_block_date_prototype=prot.filter(dto) if not block_period is None else prot
+        storage_prototype=after_block_date_prototype.filter(storage_filter) if not storage_filter is None else after_block_date_prototype
         start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else prototype_report([])
         end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_filter
         for item in osv.osv_items:

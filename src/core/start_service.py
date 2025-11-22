@@ -183,7 +183,7 @@ class start_service:
         return self.__repo
     
     """
-    Стартовый набор данных
+    Дата блокировки
     """
     @property
     def block_period(self):
@@ -193,26 +193,30 @@ class start_service:
     def block_period(self, value):
         validator.validate(value, datetime)
         self.__block_period=value
+        #После изменения даты блокировки пересчитываем остатки
         self.create_stocks()
     
-
+    #Создание остатков
     def create_stocks(self):
         self.__repo.data[repository.stock_key()].clear()
         prot=prototype_report(self.__repo.data[repository.transaction_key()])
         dto=filter_dto()
+        #Берем все транзакции до даты блокировки
         dto.field_name="date"
         dto.value=self.block_period
         dto.condition="MORE"
-        date_prot=prot.filter(dto)
+        before_block_date_prot=prot.filter(dto)
+        #Берем все транзакции до даты блокировки после 01-01-1990
         dto.field_name="date"
         dto.value=datetime.strptime("01-01-1990", "%d-%m-%Y")
         dto.condition="LESS"
-        date_prot=date_prot.filter(dto)
+        block_period_prot=before_block_date_prot.filter(dto)
+        #Создаем остатки номенклатуры отдельно для каждого склада
         for storage in self.__repo.data[repository.storage_key()]:
             dto.field_name="storage.id"
             dto.value=storage.id
             dto.condition="EQUALS"
-            stor_prot=date_prot.filter(dto)
+            stor_prot=block_period_prot.filter(dto)
             for nomenclature in self.__repo.data[repository.nomenclature_key()]:
                 dto.field_name="nomenclature.id"
                 dto.value=nomenclature.id
