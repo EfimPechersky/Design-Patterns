@@ -1,5 +1,6 @@
 {
     "response_format":"csv",
+    "block_date":"01-01-2024",
     "company":{
         "name":"Romashka",
         "inn":23213122,

@@ -7,22 +7,27 @@ from Dto.filter_dto import filter_dto
 import pytest
 #Тестирование класса прототипа
 class TestPrototype:
-    start = start_service()
-    start.start(file=True)
+    
+    @pytest.fixture()
+    def start(self):
+        start = start_service()
+        start.start(file=True)
+        return start
+
     #Тестирование создание прототипа
-    def test_create_prototype(self):
+    def test_create_prototype(self,start):
         #Подготовка
-        nom=self.start.data[repository.nomenclature_key()]
+        nom=start.data[repository.nomenclature_key()]
         #Действие
         prot=prototype_report(nom)
         #Проверка
         assert len(prot.data)==len(nom)
     
     #Тестирование клонирования прототипа
-    def test_clone_prototype(self):
+    def test_clone_prototype(self,start):
         #Подготовка
-        nom=self.start.data[repository.nomenclature_key()]
-        rang=self.start.data[repository.range_key()]
+        nom=start.data[repository.nomenclature_key()]
+        rang=start.data[repository.range_key()]
         #Действие
         prot1=prototype_report(rang)
         prot2=prot1.clone(nom)
@@ -32,10 +37,10 @@ class TestPrototype:
         assert len(prot3.data)==len(rang)
     
     #Тестирование фильтрации
-    def test_prototype_filter(self):
-        start_prototype=prototype_report(self.start.data[repository.transaction_key()])
-        print(self.start.data)
-        find_nomenclature = self.start.data[repository.nomenclature_key()][0]
+    def test_prototype_filter(self,start):
+        start_prototype=prototype_report(start.data[repository.transaction_key()])
+        print(start.data)
+        find_nomenclature = start.data[repository.nomenclature_key()][0]
         dto=filter_dto()
         dto.field_name="nomenclature.name"
         dto.condition="EQUALS"
@@ -51,10 +56,10 @@ class TestPrototype:
         assert len(test_add_prototype.data)==1
     
     #Тестирование фильтрации при помощи вызова функции у объекта прототипа
-    def test_prototype_chain(self):
-        start_prototype=prototype_report(self.start.data[repository.transaction_key()])
-        print(self.start.data)
-        find_nomenclature = self.start.data[repository.nomenclature_key()][0]
+    def test_prototype_chain(self,start):
+        start_prototype=prototype_report(start.data[repository.transaction_key()])
+        print(start.data)
+        find_nomenclature = start.data[repository.nomenclature_key()][0]
         dto=filter_dto()
         dto.field_name="nomenclature.name"
         dto.condition="EQUALS"

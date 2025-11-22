@@ -4,6 +4,7 @@ from Core.validator import validator, operation_exception, argument_exception
 from .abstract_model import abstract_model
 import json
 import os
+from datetime import datetime
 """Класс для загрузки настроек"""
 class settings_manager:
     __full_file_name:str = ""
@@ -50,6 +51,9 @@ class settings_manager:
             return False
         validator.validate(data["response_format"], str)
         self.__settings.response_format=data["response_format"]
+        if "block_period" in data.keys():
+            validator.validate(data["response_format"], str)
+            self.__settings.block_period=datetime.strptime(data["block_period"],"%d-%m-%Y")
         fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
         matching_keys = list(filter(lambda key: key in fields, data["company"].keys()))
         try:
@@ -90,6 +94,7 @@ class settings_manager:
         self.__settings.company.BIK=0
         self.__settings.company.type_of_own="AAAAA"
         self.__settings.response_format="csv"
+        self.__settings.block_period=datetime.strptime("01-01-1990","%d-%m-%Y")
 
     
                     

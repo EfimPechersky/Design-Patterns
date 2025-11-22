@@ -16,7 +16,6 @@ class osv_model(abstract_model):
     __start_date:datetime
     __end_date:datetime
     __osv_items=[]
-    __osv_dict={}
     def __init__(self):
         self.__osv_items=[]
         super().__init__()
@@ -67,26 +66,40 @@ class osv_model(abstract_model):
         for i in value:
             validator.validate(i,osv_item_model)
             self.osv_items.append(i)
-    
+
     """
     Заполнение ОСВ
     """
-    def fill_rows(self, transactions):
+    def fill_rows(self, transactions, block_period=None,stocks=[]):
         dto=filter_dto()
+        #Фильтруем транзакции после даты блокировки
+        prot=prototype_report(transactions)
+        dto.field_name="date"
+        dto.value=block_period
+        dto.condition="LESS"
+        after_block_date_prototype=prot.filter(dto) if not block_period is None else prot
+        stocks_prot=prototype_report(stocks)
         dto.field_name="storage.id"
         dto.value=self.storage.id
         dto.condition="EQUALS"
-        new_prototype=prototype_report(transactions)
-        new_prototype=prototype_report.filter(new_prototype,dto)
+        #Фильтруем транзакции и остатки по складу
+        storage_prototype=prototype_report.filter(after_block_date_prototype,dto)
+        stocks_storage_prot=stocks_prot.filter(dto)
         dto.field_name="date"
         dto.value=self.end_date
         dto.condition="MORE"
-        end_prototype=prototype_report.filter(new_prototype,dto)
+        end_prototype=prototype_report.filter(storage_prototype,dto)
         for item in self.osv_items:
             dto.field_name="nomenclature.name"
             dto.value=item.nomenclature.name
             dto.condition="EQUALS"
+            #Фильтруем транзакции и остатки по номенклатуре
             nom_prototype=prototype_report.filter(end_prototype,dto)
+            stocks_nom_prot=stocks_storage_prot.filter(dto)
+            #Учет остатков
+            if len(stocks_nom_prot.data)==1:
+                item.start_num=stocks_nom_prot.data[0].num
+                item.end_num=stocks_nom_prot.data[0].num
             for transaction in nom_prototype.data:
                 num=transaction.num
                 if not transaction.range.base_range is None:
@@ -105,7 +118,7 @@ class osv_model(abstract_model):
     Создание ОСВ при помощи фильтров
     """
     @staticmethod
-    def filters_osv(filters:list, transactions, nomenclatures):
+    def filters_osv(filters:list, transactions, nomenclatures, block_period=None,  stocks=[]):
         osv=osv_model()
         osv.fill_empty_osv(nomenclatures)
         start_date_filter=None
@@ -124,16 +137,28 @@ class osv_model(abstract_model):
                     start_date_filter=filter
             if "storage.id" == filter.field_name:
                 storage_filter=filter
-        new_prototype=prototype_report(transactions)
-        storage_prototype=new_prototype.filter(storage_filter) if not storage_filter is None else new_prototype
+        prot=prototype_report(transactions)
+        dto=filter_dto()
+        dto.field_name="date"
+        dto.value=block_period
+        dto.condition="LESS"
+        #Фильтрация остатков по складу
+        stocks_prot=prototype_report(stocks)
+        stocks_storage_prot = stocks_prot.filter(storage_filter)
+        #Фильтруем транзакции после даты блокировки
+        after_block_date_prototype=prot.filter(dto) if not block_period is None else prot
+        storage_prototype=after_block_date_prototype.filter(storage_filter) if not storage_filter is None else after_block_date_prototype
         start_prototype=storage_prototype.filter(start_date_filter) if not start_date_filter is None else prototype_report([])
         end_prototype=storage_prototype.filter(end_date_filter) if not end_date_filter is None else storage_filter
-        dto=filter_dto()
         for item in osv.osv_items:
             dto.field_name="nomenclature.name"
             dto.value=item.nomenclature.name
             dto.condition="EQUALS"
             nom_prototype=start_prototype.filter(dto)
+            stocks_nom_prot=stocks_storage_prot.filter(dto)
+            if len(stocks_nom_prot.data)==1:
+                item.start_num=stocks_nom_prot.data[0].num
+                item.end_num=stocks_nom_prot.data[0].num
             for transaction in nom_prototype.data:
                 num=transaction.num
                 if not transaction.range.base_range is None:
