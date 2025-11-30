@@ -20,6 +20,8 @@ from Convert.convert_factory import convert_factory
 from datetime import datetime
 from Models.stock_model import stock_model
 from Logics.prototype_report import prototype_report
+from Core.observe_service import observe_service
+from Core.event_type import event_type
 class start_service:
     # Репозиторий
 
@@ -188,8 +190,7 @@ class start_service:
     def block_period(self, value):
         validator.validate(value, datetime)
         self.__block_period=value
-        #После изменения даты блокировки пересчитываем остатки
-        self.create_stocks()
+        observe_service.create_event(event_type.change_block_period(),{"block_period":self.__block_period})
     
     #Создание остатков
     def create_stocks(self):
@@ -295,8 +296,6 @@ class start_service:
     Выгрузка данных
     """
     def dump(self, filename):
-        if self.__full_file_name == "":
-            raise operation_exception("Не найден файл настроек!")
         try:
             alldata={}
             cf=convert_factory()

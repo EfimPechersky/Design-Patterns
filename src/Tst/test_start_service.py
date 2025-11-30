@@ -115,10 +115,12 @@ class TestStartService:
     def test_block_period(self):
         #Подготовка
         self.__start_service.block_period=datetime.strptime("01-11-2025", "%d-%m-%Y")
+        self.__start_service.create_stocks()
         #Проверка
         print(self.__start_service.data[repository.stock_key()])
         assert len(self.__start_service.data[repository.stock_key()])==len(self.__start_service.data[repository.nomenclature_key()])
         self.__start_service.block_period=datetime.strptime("01-01-2024", "%d-%m-%Y")
+        self.__start_service.create_stocks()
 
     
     #Тестирование даты блокировки

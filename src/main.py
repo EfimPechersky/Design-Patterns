@@ -16,10 +16,16 @@ from Convert.datetime_convertor import datetime_convertor
 from Core.reference_service import reference_service
 from Core.observe_service import observe_service
 from Core.event_type import event_type
+from Core.reference_postprocessor import reference_postprocessor
+from Core.stock_postprocessor import stock_postprocessor
+from Core.settings_postprocessor import settings_postprocessor
 app = connexion.FlaskApp(__name__)
 service=start_service()
 fe = factory_entities()
 refservice=reference_service()
+reference_postprocessor()
+stock_postprocessor()
+settings_postprocessor()
 
 """
 Проверить доступность REST API
@@ -238,11 +244,10 @@ def get_reference(reference_type):
 @app.app.route("/api/<reference_type>", methods=['PUT'])
 def add_reference(reference_type):
     data = request.get_json()
-    params = {"reference_type":reference_type, "reference":data}
     if reference_type not in repository.keys():
         return flask.Response(response=f"Неверный тип объекта", status=400, 
                content_type="text/plain;charset=utf-8")
-    res = observe_service.create_event(event_type.add_new_reference(),params)
+    res=refservice.add_reference(reference_type,data)
     if res:
         return flask.Response(response="Успешно добавлен новый объект!", status=200, 
                content_type="text/plain;charset=utf-8")
@@ -252,11 +257,11 @@ def add_reference(reference_type):
 @app.app.route("/api/<reference_type>", methods=['DELETE'])
 def delete_reference(reference_type):
     data = request.get_json()
-    params = {"reference_type":reference_type, "reference_id":data["id"]}
+    reference_id=data["id"]
     if reference_type not in repository.keys():
         return flask.Response(response=f"Неверный тип объекта", status=400, 
                content_type="text/plain;charset=utf-8")
-    res = observe_service.create_event(event_type.delete_reference(),params)
+    res=refservice.delete_reference(reference_type,reference_id)
     if res:
         return flask.Response(response="Успешно удален объект!", status=200, 
                content_type="text/plain;charset=utf-8")
@@ -266,11 +271,10 @@ def delete_reference(reference_type):
 @app.app.route("/api/<reference_type>", methods=['PATCH'])
 def change_reference(reference_type):
     data = request.get_json()
-    params = {"reference_type":reference_type, "reference":data}
     if reference_type not in repository.keys():
         return flask.Response(response=f"Неверный тип объекта", status=400, 
                content_type="text/plain;charset=utf-8")
-    res = observe_service.create_event(event_type.change_reference(),params)
+    res=refservice.change_reference(reference_type,data)
     if res:
         return flask.Response(response="Успешно изменен объект!", status=200, 
                content_type="text/plain;charset=utf-8")

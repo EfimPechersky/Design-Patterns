@@ -29,8 +29,15 @@ class event_type:
     Событие - удаление объекта
     """
     @staticmethod
-    def delete_reference() -> str:
-        return "delete_reference"
+    def deleting_reference() -> str:
+        return "deleting_reference"
+
+    """
+    Событие - объект удален
+    """
+    @staticmethod
+    def deleted_reference() -> str:
+        return "deleted_reference"
 
     """
     Событие - изменение объекта

@@ -33,7 +33,5 @@ class observe_service:
     """
     @staticmethod
     def create_event(  event: str, params ):
-        res=True
         for instance in observe_service.handlers:        
-            res=res and instance.handle ( event, params  )
-        return res
+            instance.handle ( event, params  )

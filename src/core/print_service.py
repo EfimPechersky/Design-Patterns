@@ -19,4 +19,4 @@ class print_service(abstract_logic):
         if   event == event_type.convert_to_json():
             #Александр Серегеевич, этот принт написали вы на паре, не четвертуйте, пжл,
             print( f"params:{ params } ")
-        return True
+    
