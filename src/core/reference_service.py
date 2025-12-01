@@ -22,8 +22,10 @@ class reference_service():
     def add_reference(self,reference_type, reference):
         if not reference_type in repository.keys():
             raise argument_exception(f"Неизвестный тип {reference_type}!")
+        reference_dto=start_service.get_model_by_type(reference_type)[0]
+        dto=reference_dto().create(reference)
         result=self.service.add_reference(reference_type, reference)
-        observe_service.create_event(event_type.add_new_reference(), {"reference_type":reference_type, "reference":reference})
+        observe_service.create_event(event_type.add_new_reference(),dto)
         return result
     
     #Изменить объект
@@ -31,7 +33,9 @@ class reference_service():
         if not reference_type in repository.keys():
             raise argument_exception(f"Неизвестный тип {reference_type}!")
         result=self.service.change_reference(reference_type, reference)
-        observe_service.create_event(event_type.change_reference(), {"reference_type":reference_type, "reference":reference})
+        reference_dto=start_service.get_model_by_type(reference_type)[0]
+        dto=reference_dto().create(reference)
+        observe_service.create_event(event_type.change_reference(),dto)
         return result
 
     #Удаление объекта
@@ -48,8 +52,8 @@ class reference_service():
         found_reference=references.filter(dto).data
         if len(found_reference)==0:
             raise argument_exception(f"Объект типа {reference_type} не был обнаружен по id {reference_id}!")
-        observe_service.create_event(event_type.deleting_reference(),{"reference_type":reference_type, "reference":found_reference[0]})
+        observe_service.create_event(event_type.deleting_reference(),found_reference[0].to_dto())
         self.service.data[reference_type].remove(found_reference[0])
-        observe_service.create_event(event_type.deleted_reference(), {"reference_type":reference_type, "reference_id":reference_id})
+        observe_service.create_event(event_type.deleted_reference(), found_reference[0].to_dto())
         return True
         

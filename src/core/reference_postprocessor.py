@@ -5,11 +5,16 @@ from Core.start_service import start_service
 from Core.validator import validator,argument_exception
 from Logics.prototype_report import prototype_report
 from Dto.filter_dto import filter_dto
+from Dto.nomenclature_dto import nomenclature_dto
+from Dto.range_dto import range_dto
+from Dto.group_dto import group_dto
+from Dto.storage_dto import storage_dto
 from Core.repository import repository
 from Models.nomenclature_model import nomenclature_model
 from Models.storage_model import storage_model
 from Models.range_model import range_model
 from Models.group_model import nomenclature_group_model
+from Core.validator import argument_exception
 #Постобработчик для предотвращения удаления объекта
 class reference_postprocessor(abstract_logic):
 
@@ -19,7 +24,7 @@ class reference_postprocessor(abstract_logic):
         observe_service.add(self)
     #Проверить наличие номенклатуры в других объектах
     def check_nomenclatures(self, nomenclature):
-        validator.validate(nomenclature, nomenclature_model)
+        validator.validate(nomenclature, nomenclature_dto)
         dto=filter_dto()
         dto.field_name="nomenclature.id"
         dto.value=nomenclature.id
@@ -36,7 +41,7 @@ class reference_postprocessor(abstract_logic):
         return False
     #Проверить наличие склада в других объектах
     def check_storages(self, storage):
-        validator.validate(storage, storage_model)
+        validator.validate(storage, storage_dto)
         dto=filter_dto()
         dto.field_name="storage.id"
         dto.value=storage.id
@@ -52,7 +57,7 @@ class reference_postprocessor(abstract_logic):
         return False
     #Проверить наличие единицы измерения в других объектах
     def check_ranges(self,range):
-        validator.validate(range, range_model)
+        validator.validate(range, range_dto)
         dto=filter_dto()
         dto.field_name="range_count.id"
         dto.value=range.id
@@ -72,7 +77,7 @@ class reference_postprocessor(abstract_logic):
     
     #Проверить наличие группы в других объектах
     def check_groups(self,group):
-        validator.validate(group, nomenclature_group_model)
+        validator.validate(group, group_dto)
         dto=filter_dto()
         dto.field_name="group.id"
         dto.value=group.id
@@ -89,17 +94,15 @@ class reference_postprocessor(abstract_logic):
     def handle(self, event:str, params):
         super().handle(event, params)
         if event == event_type.deleting_reference():
-            reference_type=params["reference_type"]
-            reference=params["reference"]
-            if reference_type=="nomenclatures":
-                if self.check_nomenclatures(reference):
-                    raise Exception("Номенклатура используется в других объектах")
-            elif reference_type=="ranges":
-                if self.check_ranges(reference):
-                    raise Exception("Единица измерения используется в других объектах")
-            elif reference_type=="storages":
-                if self.check_storages(reference):
-                    raise Exception("Склад используется в других объектах")
-            elif reference_type=="groups":
-                if self.check_groups(reference):
-                    raise Exception("Группа номенклатуры используется в других объектах")
+            if type(params) == nomenclature_dto:
+                if self.check_nomenclatures(params):
+                    raise argument_exception("Номенклатура используется в других объектах")
+            elif type(params) == range_dto:
+                if self.check_ranges(params):
+                    raise argument_exception("Единица измерения используется в других объектах")
+            elif type(params) ==storage_dto:
+                if self.check_storages(params):
+                    raise argument_exception("Склад используется в других объектах")
+            elif type(params)==group_dto:
+                if self.check_groups(params):
+                    raise argument_exception("Группа номенклатуры используется в других объектах")

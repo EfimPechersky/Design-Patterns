@@ -24,7 +24,7 @@ from Core.observe_service import observe_service
 from Core.event_type import event_type
 class start_service:
     # Репозиторий
-
+    __repo: repository = repository()
     #Дата блокировки
     __block_period:datetime = None
 
@@ -45,9 +45,7 @@ class start_service:
 
     # Наименование файла (полный путь)
     __full_file_name:str = ""
-    __repo: repository = repository()
-    def __init__(self):
-        self.__repo.initalize()
+    
     
     # Singletone
     def __new__(cls):
@@ -190,44 +188,13 @@ class start_service:
     def block_period(self, value):
         validator.validate(value, datetime)
         self.__block_period=value
-        observe_service.create_event(event_type.change_block_period(),{"block_period":self.__block_period})
-    
-    #Создание остатков
-    def create_stocks(self):
-        self.__repo.data[repository.stock_key()].clear()
-        prot=prototype_report(self.__repo.data[repository.transaction_key()])
-        dto=filter_dto()
-        #Берем все транзакции до даты блокировки
-        dto.field_name="date"
-        dto.value=self.block_period
-        dto.condition="MORE"
-        before_block_date_prot=prot.filter(dto)
-        #Берем все транзакции до даты блокировки после 01-01-1990
-        dto.field_name="date"
-        dto.value=datetime.strptime("01-01-1990", "%d-%m-%Y")
-        dto.condition="LESS"
-        block_period_prot=before_block_date_prot.filter(dto)
-        #Создаем остатки номенклатуры отдельно для каждого склада
-        for storage in self.__repo.data[repository.storage_key()]:
-            dto.field_name="storage.id"
-            dto.value=storage.id
-            dto.condition="EQUALS"
-            stor_prot=block_period_prot.filter(dto)
-            for nomenclature in self.__repo.data[repository.nomenclature_key()]:
-                dto.field_name="nomenclature.id"
-                dto.value=nomenclature.id
-                dto.condition="EQUALS"
-                nom_prot=stor_prot.filter(dto)
-                range=nomenclature.range_count
-                if not range.base_range is None:
-                    range=range.base_range
-                stock=stock_model.create(nomenclature, range, storage, 0.0)
-                for transaction in nom_prot.data:
-                    num=transaction.num
-                    if transaction.range!=range:
-                        num*=transaction.range.coeff
-                    stock.num=stock.num+num
-                self.__repo.data[repository.stock_key()].append(stock)
+        observe_service.create_event(event_type.change_block_period(),self.__block_period)
+
+    @staticmethod
+    def get_model_by_type(reference_type):
+        if reference_type in start_service.__references:
+            return start_service.__references[reference_type]
+        return None
             
 
     """Запись дефолтных значений единицы измерения"""
@@ -291,24 +258,6 @@ class start_service:
         stocks=self.__repo.data[repository.stock_key()]
         osv=osv_model.filters_osv(filters, transactions, nomenclatures, self.block_period, stocks)
         return osv
-
-    """
-    Выгрузка данных
-    """
-    def dump(self, filename):
-        try:
-            alldata={}
-            cf=convert_factory()
-            for k in repository.keys():
-                alldata[k]=[]
-                for i in self.__repo.data[k]:
-                    alldata[k]+=[cf.rec_convert(i)]
-            with open(filename, 'w', encoding="UTF-8") as file_instance:
-                json.dump(alldata,file_instance,ensure_ascii=False,indent=4)
-            return True
-        except Exception as e:
-            error_message = str(e)
-            return False
     """
     Основной метод для генерации эталонных данных
     """

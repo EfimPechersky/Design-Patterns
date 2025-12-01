@@ -3,6 +3,8 @@ from Core.reference_service import reference_service
 from Core.print_service import print_service
 from Core.event_type import event_type
 from Models.range_model import range_model
+from Dto.nomenclature_dto import nomenclature_dto
+from Models.nomenclature_model import nomenclature_model
 from Core.start_service import start_service
 from Core.repository import repository
 from Core.reference_postprocessor import reference_postprocessor

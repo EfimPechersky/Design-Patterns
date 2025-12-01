@@ -9,13 +9,15 @@ from Core.validator import validator,argument_exception,operation_exception
 from contextlib import nullcontext as does_not_raise
 from Dto.receipt_dto import receipt_dto
 from Logics.response_csv import response_csv
+from Core.settings_postprocessor import settings_postprocessor
+from Core.stock_postprocessor import stock_postprocessor
+from Core.observe_service import observe_service
 import pytest
 from datetime import datetime
 #Тестирование работы сервиса
 class TestStartService:
     __start_service = start_service()
     __start_service.start(file=True)
-        
     #Тестирование на пустые значения единиц измерения
     def test_start_service_range_not_empty(self):
         # проверка
@@ -102,29 +104,25 @@ class TestStartService:
         osv=self.__start_service.create_osv(start, end, storage_id)
         #Проверка
         assert len(osv.osv_items)==len(self.__start_service.data[repository.nomenclature_key()])
-
-    #Тестирование выгрузки настроек в файл
-    def test_dump_to_file(self):
-        #Действие
-        res = self.__start_service.dump("newsettings.json")
-        #Проверка
-        assert res==True
     
 
     #Тестирование создания ОСВ
     def test_block_period(self):
+        self.__start_service.start(file=True)
+        set=stock_postprocessor()
+        print(observe_service.handlers)
         #Подготовка
         self.__start_service.block_period=datetime.strptime("01-11-2025", "%d-%m-%Y")
-        self.__start_service.create_stocks()
         #Проверка
-        print(self.__start_service.data[repository.stock_key()])
         assert len(self.__start_service.data[repository.stock_key()])==len(self.__start_service.data[repository.nomenclature_key()])
         self.__start_service.block_period=datetime.strptime("01-01-2024", "%d-%m-%Y")
-        self.__start_service.create_stocks()
+        observe_service.delete(set)
 
     
     #Тестирование даты блокировки
     def test_block_period_same_osv(self):
+        self.__start_service.start(file=True)
+        set=stock_postprocessor
         #Подготовка
         self.__start_service.block_period=datetime.strptime("01-12-2024", "%d-%m-%Y")
         start=datetime.strptime("10-10-2025", "%d-%m-%Y")
@@ -138,5 +136,6 @@ class TestStartService:
         csv2=response_csv().build("csv",osv2.osv_items)
         #Проверка
         assert csv1==csv2
+        observe_service.delete(set)
 
         

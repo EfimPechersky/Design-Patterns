@@ -23,9 +23,9 @@ app = connexion.FlaskApp(__name__)
 service=start_service()
 fe = factory_entities()
 refservice=reference_service()
-reference_postprocessor()
-stock_postprocessor()
-settings_postprocessor()
+ref=reference_postprocessor()
+stp=stock_postprocessor()
+sep=settings_postprocessor()
 
 """
 Проверить доступность REST API
@@ -196,7 +196,7 @@ def get_report(code,start,end):
 
 @app.app.route("/dump", methods=['POST'])
 def dump():
-    res=service.dump("newsettings.json")
+    res=stp.dump("newsettings.json")
     if res:
         return flask.Response(response="Info saved to file!", status=200, 
                content_type="text/plain;charset=utf-8")
