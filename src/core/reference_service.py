@@ -13,14 +13,13 @@ from Models.group_model import nomenclature_group_model
 from Core.reference_postprocessor import reference_postprocessor
 #Сервис для создания, удаления и изменения объектов
 class reference_service():
-
-
     def __init__(self):
         self.service=start_service()
 
     #Добавить объект
     def add_reference(self,reference_type, reference):
         if not reference_type in repository.keys():
+            observe_service.create_event(event_type.error(),f"Error with adding new reference: Unknown type {reference_type}!")
             raise argument_exception(f"Неизвестный тип {reference_type}!")
         reference_dto=start_service.get_model_by_type(reference_type)[0]
         dto=reference_dto().create(reference)
@@ -31,6 +30,7 @@ class reference_service():
     #Изменить объект
     def change_reference(self,reference_type, reference):
         if not reference_type in repository.keys():
+            observe_service.create_event(event_type.error(),f"Error with changing reference: Unknown type {reference_type}!")
             raise argument_exception(f"Неизвестный тип {reference_type}!")
         result=self.service.change_reference(reference_type, reference)
         reference_dto=start_service.get_model_by_type(reference_type)[0]
@@ -43,6 +43,7 @@ class reference_service():
         validator.validate(reference_type, str)
         validator.validate(reference_id, str)
         if reference_type not in self.service.data.keys():
+            observe_service.create_event(event_type.error(),f"Error with deleting reference: Unknown type {reference_type}!")
             raise argument_exception(f"Неизвестный тип {reference_type}!")
         dto=filter_dto()
         dto.field_name="id"
@@ -51,9 +52,11 @@ class reference_service():
         references=prototype_report(self.service.data[reference_type])
         found_reference=references.filter(dto).data
         if len(found_reference)==0:
+            observe_service.create_event(event_type.error(),f"Error with adding new reference: Object with type {reference_type} was not found by id {reference_id}!")
             raise argument_exception(f"Объект типа {reference_type} не был обнаружен по id {reference_id}!")
         observe_service.create_event(event_type.deleting_reference(),found_reference[0].to_dto())
         self.service.data[reference_type].remove(found_reference[0])
+        self.service.remove_from_cache(reference_id)
         observe_service.create_event(event_type.deleted_reference(), found_reference[0].to_dto())
         return True
         

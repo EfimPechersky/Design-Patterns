@@ -2,6 +2,7 @@ from .company_model import company_model
 from .settings_model import settings_model
 from Core.validator import validator, operation_exception, argument_exception
 from .abstract_model import abstract_model
+from Core.event_type import event_type
 import json
 import os
 from datetime import datetime
@@ -54,6 +55,12 @@ class settings_manager:
         if "block_period" in data.keys():
             validator.validate(data["response_format"], str)
             self.__settings.block_period=datetime.strptime(data["block_period"],"%d-%m-%Y")
+        if "logs_output" in data.keys():
+            validator.validate(data["logs_output"], str)
+            self.__settings.logs_output=data["logs_output"]
+        if "log_level" in data.keys():
+            validator.validate(data["log_level"], str)
+            self.__settings.log_level=data["log_level"]
         fields = list(filter(lambda x: not x.startswith("_") , dir(self.__settings.company))) 
         matching_keys = list(filter(lambda key: key in fields, data["company"].keys()))
         try:
@@ -66,7 +73,7 @@ class settings_manager:
 
     """Выгрузка настроек из файла в словарь"""
     def load(self) -> bool:
-        fields=["company","response_format"]
+        fields=["company","response_format","block_period","logs_output", "log_level"]
         data={}
         if self.__full_file_name == "":
             raise operation_exception("Не найден файл настроек!")
@@ -93,8 +100,10 @@ class settings_manager:
         self.__settings.company.cor_account=0
         self.__settings.company.BIK=0
         self.__settings.company.type_of_own="AAAAA"
-        self.__settings.response_format="csv"
+        self.__settings.response_format="json"
         self.__settings.block_period=datetime.strptime("01-01-1990","%d-%m-%Y")
+        self.__settings.logs_output="CONSOLE"
+        self.__settings.log_level=event_type.debug()
 
     
                     
