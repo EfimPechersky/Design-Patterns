@@ -20,9 +20,11 @@ from Convert.convert_factory import convert_factory
 from datetime import datetime
 from Models.stock_model import stock_model
 from Logics.prototype_report import prototype_report
+from Core.observe_service import observe_service
+from Core.event_type import event_type
 class start_service:
     # Репозиторий
-
+    __repo: repository = repository()
     #Дата блокировки
     __block_period:datetime = None
 
@@ -30,14 +32,26 @@ class start_service:
     # Ключ - id записи, значение - abstract_model
     __cache = {}
 
+    #Словарь для хранения дто и моделей относящихся к типу референса
+
+    __references={
+        repository.range_key():[range_dto,range_model],
+        repository.storage_key():[storage_dto,storage_model],
+        repository.nomenclature_key():[nomenclature_dto,nomenclature_model],
+        repository.group_key():[group_dto, nomenclature_group_model],
+        repository.transaction_key():[transaction_dto,transaction_model],
+        repository.receipt_key():[receipt_dto,receipt_model]
+        }
+
     # Наименование файла (полный путь)
     __full_file_name:str = ""
-
-    def __init__(self):
-        self.__cache = {}
-        self.__repo: repository = repository()
-        self.__repo.initalize()
-        
+    
+    
+    # Singletone
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+            cls.instance = super(start_service, cls).__new__(cls)
+        return cls.instance 
 
     # Текущий файл
     @property
@@ -70,14 +84,13 @@ class start_service:
                     self.default_create_receipt()
                     return True
                 if "receipts" in settings.keys():
-                    data = settings["receipts"]
-                    self.__convert_ranges(settings)
-                    self.__convert_groups(settings)
-                    self.__convert_nomenclatures(settings)
-                    rec_res=self.convert(data)
-                    stor_res=self.__convert_storages(settings)
-                    tran_res=self.__convert_transactions(settings)
-                    return rec_res and stor_res and tran_res
+                    self.convert_any(settings, repository.range_key())
+                    self.convert_any(settings, repository.storage_key())
+                    self.convert_any(settings, repository.group_key())
+                    self.convert_any(settings, repository.nomenclature_key())
+                    self.convert_any(settings, repository.receipt_key())
+                    self.convert_any(settings, repository.transaction_key())
+                    return True
                     
                     
 
@@ -93,81 +106,63 @@ class start_service:
         if not dto.id in self.__cache.keys():
             self.__cache.setdefault(dto.id, item)
             self.__repo.data[ key ].append(item)
+    
 
-    # Загрузить единицы измерений   
-    def __convert_ranges(self, data: dict) -> bool:
+    #Добавить объект
+    def add_reference(self,reference_type:str,data:dict):
         validator.validate(data, dict)
-        ranges = data['ranges'] if 'ranges' in data else []
-        if len(ranges) == 0:
+        validator.validate(reference_type,str)
+        reference_dto=self.__references[reference_type][0]
+        model=self.__references[reference_type][1]
+        dto = reference_dto().create(data)
+        item = model.from_dto(dto, self.__cache )
+        if dto.id in self.__cache:
             return False
-         
-        for range in ranges:
-            dto = range_dto().create(range)
-            item = range_model.from_dto(dto, self.__cache)
-            self.__save_item( repository.range_key(), dto, item )
-
+        self.__save_item(reference_type, dto, item )
+        return True
+    
+    #Изменить объект
+    def change_reference(self,reference_type:str,data:dict):
+        validator.validate(data, dict)
+        validator.validate(reference_type,str)
+        reference_dto=self.__references[reference_type][0]
+        model=self.__references[reference_type][1]
+        dto = reference_dto().create(data)
+        item = model.from_dto(dto, self.__cache )
+        references=prototype_report(self.data[reference_type])
+        filt=filter_dto()
+        filt.field_name="id"
+        filt.value=dto.id
+        filt.condition="EQUALS"
+        found_reference=references.filter(filt).data
+        if len(found_reference)==0:
+            return False
+        fields = list(filter(lambda x: not x.startswith("_") , dir(found_reference[0])))
+        
+        for field in fields:
+            attribute = getattr(found_reference[0].__class__,field)
+            if isinstance(attribute, property):
+                value = getattr(item, field)
+                setattr(found_reference[0], field, value)
         return True
 
-    # Загрузить группы номенклатуры
-    def __convert_groups(self, data: dict) -> bool:
+    #Преобразование референса любого типа
+    def convert_any(self, data:dict, reference_type:str):
         validator.validate(data, dict)
-        groups =  data['groups'] if 'groups' in data else []    
-        if len(groups) == 0:
+        validator.validate(reference_type,str)
+        if reference_type not in self.__references:
+            return False
+        references =  data[reference_type] if reference_type in data else []    
+        if len(references) == 0:
             return False
 
-        for category in  groups:
-            dto = group_dto().create(category)    
-            item = nomenclature_group_model.from_dto(dto, self.__cache )
-            self.__save_item( repository.group_key(), dto, item )
+        reference_dto=self.__references[reference_type][0]
+        model=self.__references[reference_type][1]
+        for category in references:
+            dto = reference_dto().create(category)    
+            item = model.from_dto(dto, self.__cache )
+            self.__save_item(reference_type, dto, item )
 
-        return True
-
-    # Загрузить номенклатуру
-    def __convert_nomenclatures(self, data: dict) -> bool:
-        validator.validate(data, dict)      
-        nomenclatures = data['nomenclatures'] if 'nomenclatures' in data else []   
-        if len(nomenclatures) == 0:
-            return False
-        for nomenclature in nomenclatures:
-            dto = nomenclature_dto().create(nomenclature)
-            item = nomenclature_model.from_dto(dto, self.__cache)
-            self.__save_item( repository.nomenclature_key(), dto, item )
-
-        return True   
-
-    def __convert_storages(self, data: dict) -> bool:
-        validator.validate(data, dict)
-        storages = data['storages'] if 'storages' in data else []
-        if len(storages) == 0:
-            return False
-        for storage in storages:
-            dto = storage_dto().create(storage)
-            item = storage_model.from_dto(dto, self.__cache)
-            self.__save_item( repository.storage_key(), dto, item )
-
-        return True       
-
-    def __convert_transactions(self, data: dict) -> bool:
-        validator.validate(data, dict)      
-        transactions = data['transactions'] if 'transactions' in data else []   
-        if len(transactions) == 0:
-            return False
-        for transaction in transactions:
-            dto = transaction_dto().create(transaction)
-            item = transaction_model.from_dto(dto, self.__cache)
-            self.__save_item( repository.transaction_key(), dto, item )
-
-        return True 
-
-    # Обработать полученный словарь    
-    def convert(self, data: list) -> bool:
-        validator.validate(data, list)
-        for receipt in data:
-            # Собираем рецепт
-            dto=receipt_dto().create(receipt)
-            default_receipt=receipt_model.from_dto(dto,self.__cache)
-            # Сохраняем рецепт
-            self.__repo.data[ repository.receipt_key() ].append(default_receipt)
         return True
 
     """
@@ -193,45 +188,13 @@ class start_service:
     def block_period(self, value):
         validator.validate(value, datetime)
         self.__block_period=value
-        #После изменения даты блокировки пересчитываем остатки
-        self.create_stocks()
-    
-    #Создание остатков
-    def create_stocks(self):
-        self.__repo.data[repository.stock_key()].clear()
-        prot=prototype_report(self.__repo.data[repository.transaction_key()])
-        dto=filter_dto()
-        #Берем все транзакции до даты блокировки
-        dto.field_name="date"
-        dto.value=self.block_period
-        dto.condition="MORE"
-        before_block_date_prot=prot.filter(dto)
-        #Берем все транзакции до даты блокировки после 01-01-1990
-        dto.field_name="date"
-        dto.value=datetime.strptime("01-01-1990", "%d-%m-%Y")
-        dto.condition="LESS"
-        block_period_prot=before_block_date_prot.filter(dto)
-        #Создаем остатки номенклатуры отдельно для каждого склада
-        for storage in self.__repo.data[repository.storage_key()]:
-            dto.field_name="storage.id"
-            dto.value=storage.id
-            dto.condition="EQUALS"
-            stor_prot=block_period_prot.filter(dto)
-            for nomenclature in self.__repo.data[repository.nomenclature_key()]:
-                dto.field_name="nomenclature.id"
-                dto.value=nomenclature.id
-                dto.condition="EQUALS"
-                nom_prot=stor_prot.filter(dto)
-                range=nomenclature.range_count
-                if not range.base_range is None:
-                    range=range.base_range
-                stock=stock_model.create(nomenclature, range, storage, 0.0)
-                for transaction in nom_prot.data:
-                    num=transaction.num
-                    if transaction.range!=range:
-                        num*=transaction.range.coeff
-                    stock.num=stock.num+num
-                self.__repo.data[repository.stock_key()].append(stock)
+        observe_service.create_event(event_type.change_block_period(),self.__block_period)
+
+    @staticmethod
+    def get_model_by_type(reference_type):
+        if reference_type in start_service.__references:
+            return start_service.__references[reference_type]
+        return None
             
 
     """Запись дефолтных значений единицы измерения"""
@@ -295,26 +258,6 @@ class start_service:
         stocks=self.__repo.data[repository.stock_key()]
         osv=osv_model.filters_osv(filters, transactions, nomenclatures, self.block_period, stocks)
         return osv
-
-    """
-    Выгрузка данных
-    """
-    def dump(self, filename):
-        if self.__full_file_name == "":
-            raise operation_exception("Не найден файл настроек!")
-        try:
-            alldata={}
-            cf=convert_factory()
-            for k in repository.keys():
-                alldata[k]=[]
-                for i in self.__repo.data[k]:
-                    alldata[k]+=[cf.rec_convert(i)]
-            with open(filename, 'w', encoding="UTF-8") as file_instance:
-                json.dump(alldata,file_instance,ensure_ascii=False,indent=4)
-            return True
-        except Exception as e:
-            error_message = str(e)
-            return False
     """
     Основной метод для генерации эталонных данных
     """

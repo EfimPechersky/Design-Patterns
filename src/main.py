@@ -13,9 +13,19 @@ from Dto.filter_dto import filter_dto
 from Logics.prototype_report import prototype_report
 from datetime import datetime
 from Convert.datetime_convertor import datetime_convertor
+from Core.reference_service import reference_service
+from Core.observe_service import observe_service
+from Core.event_type import event_type
+from Core.reference_postprocessor import reference_postprocessor
+from Core.stock_postprocessor import stock_postprocessor
+from Core.settings_postprocessor import settings_postprocessor
 app = connexion.FlaskApp(__name__)
 service=start_service()
 fe = factory_entities()
+refservice=reference_service()
+ref=reference_postprocessor()
+stp=stock_postprocessor()
+sep=settings_postprocessor()
 
 """
 Проверить доступность REST API
@@ -165,7 +175,6 @@ def get_receipt(code):
 @app.app.route("/report/<code>/<start>/<end>", methods=['GET'])
 def get_report(code,start,end):
     rf=fe.create('json')
-    instance = rf()
     res=service.repository.data[repository.storage_key()]
     storage=None
     try:
@@ -187,7 +196,7 @@ def get_report(code,start,end):
 
 @app.app.route("/dump", methods=['POST'])
 def dump():
-    res=service.dump("newsettings.json")
+    res=stp.dump("newsettings.json")
     if res:
         return flask.Response(response="Info saved to file!", status=200, 
                content_type="text/plain;charset=utf-8")
@@ -211,6 +220,66 @@ def get_block_period():
         res=f"Дата блокировки равна {datetime_convertor.convert(block)}"
     return flask.Response(response=res, status=200, 
                content_type="text/plain;charset=utf-8")
+
+@app.app.route("/api/<reference_type>", methods=['GET'])
+def get_reference(reference_type):
+    data = request.get_json()
+    id=data["id"]
+    filter=filter_dto()
+    filter.field_name="id"
+    filter.value=id
+    filter.condition="EQUALS"
+    if reference_type not in repository.keys():
+        return flask.Response(response=f"Неверный тип объекта", status=400, 
+               content_type="text/plain;charset=utf-8")
+    prot=prototype_report(service.data[reference_type])
+    references=prot.filter(filter).data
+    if len(references)==0:
+        return flask.Response(response=f"Не найдено ни одного объекта с id {id}", status=400, 
+               content_type="text/plain;charset=utf-8")
+    json=factory_entities().create("json")
+    return flask.Response(response=json().build("json",references), status=200, 
+               content_type="text/plain;charset=utf-8")
+
+@app.app.route("/api/<reference_type>", methods=['PUT'])
+def add_reference(reference_type):
+    data = request.get_json()
+    if reference_type not in repository.keys():
+        return flask.Response(response=f"Неверный тип объекта", status=400, 
+               content_type="text/plain;charset=utf-8")
+    res=refservice.add_reference(reference_type,data)
+    if res:
+        return flask.Response(response="Успешно добавлен новый объект!", status=200, 
+               content_type="text/plain;charset=utf-8")
+    return flask.Response(response="Возникла ошибка с добавлением объекта!", status=400, 
+            content_type="text/plain;charset=utf-8")
+
+@app.app.route("/api/<reference_type>", methods=['DELETE'])
+def delete_reference(reference_type):
+    data = request.get_json()
+    reference_id=data["id"]
+    if reference_type not in repository.keys():
+        return flask.Response(response=f"Неверный тип объекта", status=400, 
+               content_type="text/plain;charset=utf-8")
+    res=refservice.delete_reference(reference_type,reference_id)
+    if res:
+        return flask.Response(response="Успешно удален объект!", status=200, 
+               content_type="text/plain;charset=utf-8")
+    return flask.Response(response="Возникла ошибка с удалением объекта!", status=400, 
+            content_type="text/plain;charset=utf-8")
+
+@app.app.route("/api/<reference_type>", methods=['PATCH'])
+def change_reference(reference_type):
+    data = request.get_json()
+    if reference_type not in repository.keys():
+        return flask.Response(response=f"Неверный тип объекта", status=400, 
+               content_type="text/plain;charset=utf-8")
+    res=refservice.change_reference(reference_type,data)
+    if res:
+        return flask.Response(response="Успешно изменен объект!", status=200, 
+               content_type="text/plain;charset=utf-8")
+    return flask.Response(response="Возникла ошибка с изменением объекта!", status=400, 
+            content_type="text/plain;charset=utf-8")
 
 if __name__ == '__main__':
     service.start(file=True)

@@ -148,6 +148,7 @@ class nomenclature_model(abstract_model):
         range =  cache[ dto.range_id ] if dto.range_id in cache else None
         category =  cache[ dto.group_id] if dto.group_id in cache else None
         item  = nomenclature_model.create(dto.name, category, range)
+        item.id=dto.id
         return item
     
     """

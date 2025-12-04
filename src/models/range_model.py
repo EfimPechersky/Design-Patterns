@@ -99,6 +99,7 @@ class range_model(abstract_model):
         validator.validate(cache, dict)
         base  = cache[ dto.base_id ] if dto.base_id in cache else None
         item = range_model.create(dto.name, dto.coeff, base)
+        item.id=dto.id
         return item
     
     """
