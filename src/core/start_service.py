@@ -66,11 +66,14 @@ class start_service:
         if os.path.exists(full_file_name):
             self.__full_file_name = full_file_name.strip()
         else:
+            observe_service.create_event(event_type.error(),f'File {full_file_name} not found!')
             raise argument_exception(f'Не найден файл настроек {full_file_name}')
 
     # Загрузить настройки из Json файла
     def load(self) -> bool:
+        observe_service.create_event(event_type.debug(),f"Loading settings")
         if self.__full_file_name == "":
+            observe_service.create_event(event_type.error(),f'File not found!')
             raise operation_exception("Не найден файл настроек!")
 
         try:
@@ -91,12 +94,11 @@ class start_service:
                     self.convert_any(settings, repository.receipt_key())
                     self.convert_any(settings, repository.transaction_key())
                     return True
-                    
-                    
-
+            observe_service.create_event(event_type.error(),f"Error with loading settings")
             return False
         except Exception as e:
             error_message = str(e)
+            observe_service.create_event(event_type.error(),error_message)
             return False
         
     # Сохранить элемент в репозитории
@@ -117,6 +119,7 @@ class start_service:
         dto = reference_dto().create(data)
         item = model.from_dto(dto, self.__cache )
         if dto.id in self.__cache:
+            observe_service.create_event(event_type.error(), f"Object with ID {dto.id} already exists")
             return False
         self.__save_item(reference_type, dto, item )
         return True
@@ -136,6 +139,7 @@ class start_service:
         filt.condition="EQUALS"
         found_reference=references.filter(filt).data
         if len(found_reference)==0:
+            observe_service.create_event(event_type.error(), f"Object with ID {dto.id} not found")
             return False
         fields = list(filter(lambda x: not x.startswith("_") , dir(found_reference[0])))
         
@@ -145,12 +149,16 @@ class start_service:
                 value = getattr(item, field)
                 setattr(found_reference[0], field, value)
         return True
-
+    #Удаление из кэша
+    def remove_from_cache(self,id):
+        self.__cache.pop(id)
+    
     #Преобразование референса любого типа
     def convert_any(self, data:dict, reference_type:str):
         validator.validate(data, dict)
         validator.validate(reference_type,str)
         if reference_type not in self.__references:
+            observe_service.create_event(event_type.error(),f"Type {reference_type} not does not exist")
             return False
         references =  data[reference_type] if reference_type in data else []    
         if len(references) == 0:
@@ -161,8 +169,7 @@ class start_service:
         for category in references:
             dto = reference_dto().create(category)    
             item = model.from_dto(dto, self.__cache )
-            self.__save_item(reference_type, dto, item )
-
+            self.__save_item(reference_type, dto, item)
         return True
 
     """
@@ -236,9 +243,11 @@ class start_service:
     """
     def create_osv(self, start, end, storage_id):
         if start>end:
+            observe_service.create_event(event_type.debug(),f'Start date later than end date')
             raise argument_exception("Начальная дата ОСВ позже конечной даты")
         if self.__block_period!=None:
             if start<self.__block_period:
+                observe_service.create_event(event_type.debug(),f'Start date earlier than block period')
                 raise argument_exception("Начальная дата ОСВ меньше даты блокировки")
         transactions=self.__repo.data[repository.transaction_key()]
         nomenclatures = self.__repo.data[repository.nomenclature_key()]

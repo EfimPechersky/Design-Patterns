@@ -1,6 +1,8 @@
 {
     "response_format":"csv",
     "block_date":"01-01-2024",
+    "log_level":"INFO",
+    "logs_output":"FILE",
     "company":{
         "name":"Romashka",
         "inn":23213122,

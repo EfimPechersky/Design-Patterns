@@ -33,9 +33,11 @@ class settings_postprocessor(abstract_logic):
                     alldata[k]+=[cf.rec_convert(i)]
             with open(filename, 'w', encoding="UTF-8") as file_instance:
                 json.dump(alldata,file_instance,ensure_ascii=False,indent=4)
+            observe_service.create_event(event_type.debug(), f"Data was uploaded succesfully!")
             return True
         except Exception as e:
             error_message = str(e)
+            observe_service.create_event(event_type.error(), error_message)
             return False
 
     """

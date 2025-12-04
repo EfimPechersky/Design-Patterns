@@ -9,42 +9,77 @@ class event_type:
     """
     @staticmethod
     def change_block_period() -> str:
-        return "change_block_period"
+        return "Changed block period to"
     
     """
     Событие - сформирован Json
     """
     @staticmethod
     def convert_to_json() -> str:
-        return "convert_to_json"
+        return "Converting data to json"
+
+    """
+    Событие - возникла ошибка
+    """
+    @staticmethod
+    def error() -> str:
+        return "ERROR"
+
+    """
+    Событие - предупреждение
+    """
+    @staticmethod
+    def debug() -> str:
+        return "DEBUG"
+    
+    """
+    Событие - информация
+    """
+    @staticmethod
+    def info() -> str:
+        return "INFO"
+
+    """
+    Событие - тип вывода логов
+    """
+    @staticmethod
+    def set_logs_output() -> str:
+        return "Setted logs output to"
+    
+    """
+    Событие - тип вывода логов
+    """
+    @staticmethod
+    def set_log_level() -> str:
+        return "Setted log level to"
 
     """
     Событие - добавление объекта
     """
     @staticmethod
     def add_new_reference() -> str:
-        return "add_new_reference"
+        return "Added new reference with id"
 
     """
     Событие - удаление объекта
     """
     @staticmethod
     def deleting_reference() -> str:
-        return "deleting_reference"
+        return "Deleting reference with id"
 
     """
     Событие - объект удален
     """
     @staticmethod
     def deleted_reference() -> str:
-        return "deleted_reference"
+        return "Deleted reference with id"
 
     """
     Событие - изменение объекта
     """
     @staticmethod
     def change_reference() -> str:
-        return "change_reference"
+        return "Changed reference with id"
 
     """
     Получить список всех событий

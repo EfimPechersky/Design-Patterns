@@ -96,13 +96,17 @@ class reference_postprocessor(abstract_logic):
         if event == event_type.deleting_reference():
             if type(params) == nomenclature_dto:
                 if self.check_nomenclatures(params):
+                    observe_service.create_event(event_type.error(), f"Nomenclature exists in other objects!")
                     raise argument_exception("Номенклатура используется в других объектах")
             elif type(params) == range_dto:
                 if self.check_ranges(params):
+                    observe_service.create_event(event_type.error(), f"Range exists in other objects!")
                     raise argument_exception("Единица измерения используется в других объектах")
             elif type(params) ==storage_dto:
                 if self.check_storages(params):
+                    observe_service.create_event(event_type.error(), f"Storage exists in other objects!")
                     raise argument_exception("Склад используется в других объектах")
             elif type(params)==group_dto:
                 if self.check_groups(params):
+                    observe_service.create_event(event_type.error(), f"Group exists in other objects!")
                     raise argument_exception("Группа номенклатуры используется в других объектах")
